@@ -1,0 +1,235 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  walletAddress String? @unique
+  
+  // Authentication fields
+  password  String?
+  emailVerified DateTime?
+  
+  // Profile information
+  organization String?
+  role         String?
+  phone        String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  documents Document[]
+  sessions  Session[]
+  accounts  Account[]
+  
+  @@map("users")
+}
+
+// Account model for OAuth providers
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// Session model for user sessions
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+// Document model for storing document metadata and verification info
+model Document {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  documentType  DocumentType
+  
+  // File information (we store metadata, not the actual file)
+  fileName      String
+  fileSize      Int
+  mimeType      String
+  fileHash      String   @unique // SHA-256 hash of the document
+  
+  // Blockchain verification data
+  blockchainHash    String?   @unique // Hash stored on blockchain
+  transactionId     String?   @unique // Blockchain transaction ID
+  blockNumber       String?   // Block number where transaction was mined
+  networkId         String?   // Blockchain network (e.g., "ethereum", "polygon")
+  contractAddress   String?   // Smart contract address
+  
+  // Verification status and timestamps
+  status            VerificationStatus @default(PENDING)
+  verifiedAt        DateTime?
+  expiresAt         DateTime? // Optional expiration date
+  
+  // Metadata
+  tags              String[] // Array of tags for categorization
+  isPublic          Boolean  @default(false) // Whether verification link is public
+  shareableLink     String?  @unique // Public verification link
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationSteps VerificationStep[]
+  sharedAccess      SharedAccess[]
+  
+  @@map("documents")
+}
+
+// Verification steps to track the document verification process
+model VerificationStep {
+  id          String     @id @default(cuid())
+  documentId  String
+  stepType    StepType
+  status      StepStatus @default(PENDING)
+  message     String?
+  metadata    Json?      // Additional data for the step
+  
+  // Timestamps
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+  
+  // Relations
+  document    Document   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@map("verification_steps")
+}
+
+// Shared access model for sharing documents with others
+model SharedAccess {
+  id          String       @id @default(cuid())
+  documentId  String
+  email       String
+  permission  Permission   @default(VIEW)
+  expiresAt   DateTime?
+  accessToken String       @unique @default(cuid())
+  
+  // Timestamps
+  createdAt   DateTime     @default(now())
+  accessedAt  DateTime?    // Last time the shared link was accessed
+  
+  // Relations
+  document    Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@unique([documentId, email])
+  @@map("shared_access")
+}
+
+// Blockchain transaction log for auditing
+model BlockchainTransaction {
+  id              String   @id @default(cuid())
+  transactionHash String   @unique
+  blockNumber     String
+  networkId       String
+  contractAddress String
+  gasUsed         String?
+  gasFee          String?
+  status          String   // "pending", "confirmed", "failed"
+  
+  // Document reference
+  documentHash    String
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  confirmedAt     DateTime?
+  
+  @@map("blockchain_transactions")
+}
+
+// System audit log for tracking all important actions
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // Action type (e.g., "DOCUMENT_UPLOADED", "VERIFICATION_COMPLETED")
+  resource  String   // Resource affected (e.g., "document", "user")
+  resourceId String? // ID of the affected resource
+  details   Json?    // Additional details about the action
+  ipAddress String?
+  userAgent String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  
+  @@map("audit_logs")
+}
+
+// Enums
+enum DocumentType {
+  CONTRACT
+  CERTIFICATE
+  AGREEMENT
+  DIPLOMA
+  LICENSE
+  OTHER
+}
+
+enum VerificationStatus {
+  PENDING
+  PROCESSING
+  VERIFIED
+  FAILED
+  EXPIRED
+}
+
+enum StepType {
+  FILE_UPLOAD
+  HASH_GENERATION
+  BLOCKCHAIN_SUBMISSION
+  TRANSACTION_CONFIRMATION
+  VERIFICATION_COMPLETE
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum Permission {
+  VIEW
+  DOWNLOAD
+  ADMIN
+}

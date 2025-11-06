@@ -2,7 +2,12 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1e293b;
+  --navy-blue: #1e3a8a;
+  --navy-blue-dark: #1e40af;
+  --silver: #e5e7eb;
+  --silver-light: #f9fafb;
+  --silver-dark: #d1d5db;
 }
 
 @theme inline {
@@ -10,17 +15,87 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Custom theme colors */
+  --color-navy: var(--navy-blue);
+  --color-navy-dark: var(--navy-blue-dark);
+  --color-silver: var(--silver);
+  --color-silver-light: var(--silver-light);
+  --color-silver-dark: var(--silver-dark);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Force light theme - no dark mode variables */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff !important;
+  color: #1e293b;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Custom scrollbar using Tailwind-compatible colors */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+/* Minimal Ant Design overrides - let Tailwind handle most styling */
+.ant-layout {
+  background: transparent !important;
+}
+
+.ant-layout-header {
+  background: #1e3a8a !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ant-layout-footer {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Custom utility classes */
+.navy-bg {
+  background-color: #1e3a8a;
+}
+
+.navy-text {
+  color: #1e3a8a;
+}
+
+.silver-bg {
+  background-color: #f9fafb;
+}
+
+/* Override Ant Design card styles to use Tailwind */
+.ant-card {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid #e5e7eb !important;
+  background: transparent !important;
+}
+
+/* Button overrides to use Tailwind styles */
+.ant-btn-primary {
+  background-color: #1e3a8a !important;
+  border-color: #1e3a8a !important;
+}
+
+.ant-btn-primary:hover {
+  background-color: #1e40af !important;
+  border-color: #1e40af !important;
 }

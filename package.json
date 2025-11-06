@@ -9,18 +9,34 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "@auth/prisma-adapter": "^2.11.1",
+    "@prisma/client": "^6.18.0",
+    "@prisma/extension-accelerate": "^2.0.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^7.0.3",
+    "antd": "^5.27.6",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.15.0",
+    "jose": "^6.1.0",
+    "lucide-react": "^0.546.0",
+    "next": "16.0.0",
+    "next-auth": "^4.24.13",
+    "nodemailer": "^7.0.10",
+    "prisma": "^6.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "next": "16.0.0"
+    "web3": "^4.16.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.0.0"
+    "eslint-config-next": "16.0.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
