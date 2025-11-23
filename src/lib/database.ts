@@ -2,6 +2,16 @@ import { prisma } from './prisma'
 import { DocumentType, VerificationStatus, StepType, StepStatus } from '@/generated/prisma'
 import crypto from 'crypto'
 
+// Helper function to add timeout to database operations
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error(`Database operation timeout after ${timeoutMs}ms`)), timeoutMs)
+    )
+  ])
+}
+
 // User operations
 export const userOperations = {
   // Create a new user
@@ -13,14 +23,14 @@ export const userOperations = {
     organization?: string
     role?: string
   }) {
-    return await prisma.user.create({
+    return await withTimeout(prisma.user.create({
       data,
-    })
+    }))
   },
 
   // Get user by email
   async getUserByEmail(email: string) {
-    return await prisma.user.findUnique({
+    return await withTimeout(prisma.user.findUnique({
       where: { email },
       include: {
         documents: {
@@ -28,19 +38,19 @@ export const userOperations = {
           take: 10,
         },
       },
-    })
+    }))
   },
 
   // Get user by ID
   async getUserById(id: string) {
-    return await prisma.user.findUnique({
+    return await withTimeout(prisma.user.findUnique({
       where: { id },
       include: {
         documents: {
           orderBy: { createdAt: 'desc' },
         },
       },
-    })
+    }))
   },
 
   // Update user profile
@@ -51,10 +61,10 @@ export const userOperations = {
     role: string
     phone: string
   }>) {
-    return await prisma.user.update({
+    return await withTimeout(prisma.user.update({
       where: { id },
       data,
-    })
+    }))
   },
 }
 
@@ -69,48 +79,87 @@ export const documentOperations = {
     fileSize: number
     mimeType: string
     fileHash: string
+    rawFilePath?: string   // Path to raw file for display
+    hashFilePath?: string  // Path to hash file for blockchain
     userId: string
     tags?: string[]
   }) {
-    const document = await prisma.document.create({
-      data: {
-        ...data,
-        shareableLink: generateShareableLink(),
-      },
-    })
+    try {
+      console.log('Starting document creation in database...')
+      
+      // Create document with timeout
+      const document = await withTimeout(
+        prisma.document.create({
+          data: {
+            ...data,
+            shareableLink: generateShareableLink(),
+          },
+        }),
+        10000 // 10 second timeout for document creation
+      )
+      
+      console.log('Document created, creating verification step...')
+      
+      // Create initial verification step (non-blocking)
+      withTimeout(
+        prisma.verificationStep.create({
+          data: {
+            documentId: document.id,
+            stepType: StepType.FILE_UPLOAD,
+            status: StepStatus.COMPLETED,
+            message: 'Файл амжилттай оруулагдлаа',
+          },
+        }),
+        5000
+      ).catch(err => console.error('Error creating verification step:', err))
 
-    // Create initial verification step
-    await prisma.verificationStep.create({
-      data: {
-        documentId: document.id,
-        stepType: StepType.FILE_UPLOAD,
-        status: StepStatus.COMPLETED,
-        message: 'Файл амжилттай оруулагдлаа',
-      },
-    })
-
-    return document
+      return document
+    } catch (error) {
+      console.error('Error in createDocument:', error)
+      throw error
+    }
   },
 
   // Get document by ID with all related data
   async getDocumentById(id: string) {
-    return await prisma.document.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            organization: true,
+    try {
+      console.log(`[Database] Fetching document with ID: ${id}`)
+      
+      const document = await withTimeout(prisma.document.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              organization: true,
+            },
           },
+          verificationSteps: {
+            orderBy: { startedAt: 'asc' },
+          },
+          sharedAccess: true,
         },
-        verificationSteps: {
-          orderBy: { startedAt: 'asc' },
-        },
-        sharedAccess: true,
-      },
-    })
+      }), 8000) // 8 second timeout
+      
+      console.log(`[Database] Document query result: ${document ? 'found' : 'not found'}`)
+      return document
+    } catch (error) {
+      console.error(`[Database] Error in getDocumentById for ID ${id}:`, error)
+      
+      // Re-throw with more context
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          throw new Error(`Database timeout while fetching document ${id}`)
+        }
+        if (error.message.includes('Invalid')) {
+          throw new Error(`Invalid document ID format: ${id}`)
+        }
+      }
+      
+      throw error
+    }
   },
 
   // Get documents by user ID
@@ -125,7 +174,7 @@ export const documentOperations = {
     if (options?.status) where.status = options.status
     if (options?.documentType) where.documentType = options.documentType
 
-    return await prisma.document.findMany({
+    return await withTimeout(prisma.document.findMany({
       where,
       include: {
         verificationSteps: {
@@ -136,7 +185,7 @@ export const documentOperations = {
       orderBy: { createdAt: 'desc' },
       take: options?.limit || 50,
       skip: options?.offset || 0,
-    })
+    }))
   },
 
   // Update document verification status
@@ -160,15 +209,15 @@ export const documentOperations = {
       Object.assign(updateData, data)
     }
 
-    return await prisma.document.update({
+    return await withTimeout(prisma.document.update({
       where: { id },
       data: updateData,
-    })
+    }))
   },
 
   // Get document by shareable link
   async getDocumentByShareableLink(shareableLink: string) {
-    return await prisma.document.findUnique({
+    return await withTimeout(prisma.document.findUnique({
       where: { shareableLink },
       include: {
         user: {
@@ -181,7 +230,7 @@ export const documentOperations = {
           orderBy: { startedAt: 'asc' },
         },
       },
-    })
+    }))
   },
 }
 
@@ -195,9 +244,9 @@ export const verificationOperations = {
     message?: string
     metadata?: any
   }) {
-    return await prisma.verificationStep.create({
+    return await withTimeout(prisma.verificationStep.create({
       data,
-    })
+    }))
   },
 
   // Update verification step status
@@ -212,18 +261,18 @@ export const verificationOperations = {
       updateData.completedAt = new Date()
     }
 
-    return await prisma.verificationStep.update({
+    return await withTimeout(prisma.verificationStep.update({
       where: { id },
       data: updateData,
-    })
+    }))
   },
 
   // Get verification steps for a document
   async getDocumentVerificationSteps(documentId: string) {
-    return await prisma.verificationStep.findMany({
+    return await withTimeout(prisma.verificationStep.findMany({
       where: { documentId },
       orderBy: { startedAt: 'asc' },
-    })
+    }))
   },
 }
 
@@ -240,33 +289,33 @@ export const blockchainOperations = {
     gasFee?: string
     status: string
   }) {
-    return await prisma.blockchainTransaction.create({
+    return await withTimeout(prisma.blockchainTransaction.create({
       data,
-    })
+    }))
   },
 
   // Update transaction status
   async updateTransactionStatus(transactionHash: string, status: string, confirmedAt?: Date) {
-    return await prisma.blockchainTransaction.update({
+    return await withTimeout(prisma.blockchainTransaction.update({
       where: { transactionHash },
       data: {
         status,
         confirmedAt: confirmedAt || (status === 'confirmed' ? new Date() : undefined),
       },
-    })
+    }))
   },
 
   // Get transaction by hash
   async getTransactionByHash(transactionHash: string) {
-    return await prisma.blockchainTransaction.findUnique({
+    return await withTimeout(prisma.blockchainTransaction.findUnique({
       where: { transactionHash },
-    })
+    }))
   },
 }
 
 // Audit logging
 export const auditOperations = {
-  // Create audit log entry
+  // Create audit log entry (with shorter timeout since it's non-critical)
   async createAuditLog(data: {
     userId?: string
     action: string
@@ -276,9 +325,12 @@ export const auditOperations = {
     ipAddress?: string
     userAgent?: string
   }) {
-    return await prisma.auditLog.create({
-      data,
-    })
+    return await withTimeout(
+      prisma.auditLog.create({
+        data,
+      }),
+      3000 // Shorter timeout for audit logs
+    )
   },
 
   // Get audit logs with filters
@@ -295,12 +347,12 @@ export const auditOperations = {
     if (filters?.action) where.action = filters.action
     if (filters?.resource) where.resource = filters.resource
 
-    return await prisma.auditLog.findMany({
+    return await withTimeout(prisma.auditLog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: filters?.limit || 100,
       skip: filters?.offset || 0,
-    })
+    }))
   },
 }
 

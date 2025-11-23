@@ -337,7 +337,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 mt-8 md:grid-cols-2 gap-6">
             <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Хурдан үйлдлүүд</h3>
               <div className="space-y-3">

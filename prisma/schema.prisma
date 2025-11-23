@@ -37,6 +37,7 @@ model User {
   
   // Relations
   documents Document[]
+  files     File[]
   sessions  Session[]
   accounts  Account[]
   
@@ -87,6 +88,8 @@ model Document {
   fileSize      Int
   mimeType      String
   fileHash      String   @unique // SHA-256 hash of the document
+  rawFilePath   String?  // Path to the raw file for web display
+  hashFilePath  String?  // Path to the hash file for blockchain operations
   
   // Blockchain verification data
   blockchainHash    String?   @unique // Hash stored on blockchain
@@ -193,6 +196,34 @@ model AuditLog {
   createdAt DateTime @default(now())
   
   @@map("audit_logs")
+}
+
+// File model for storing files directly in database
+model File {
+  id           String   @id @default(cuid())
+  originalName String
+  mimeType     String
+  storedPath   String   // Private server path to the file
+  size         Int
+  keywords     String[] // For searching functionality
+  
+  // Optional metadata
+  description  String?
+  tags         String[]
+  
+  // Security and soft deletion
+  deletedAt    DateTime?
+  ownerId      String?  // Optional owner reference
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("files")
 }
 
 // Enums

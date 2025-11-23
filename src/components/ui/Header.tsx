@@ -41,7 +41,7 @@ export const Header: React.FC = () => {
               <SafetyCertificateOutlined className="text-xl text-blue-600" />
             </div>
             <h1 className="text-white text-xl font-bold hidden sm:block">
-              Э-Нотолгоо
+              E-Proof
             </h1>
           </Link>
         </div>
@@ -68,10 +68,10 @@ export const Header: React.FC = () => {
           ) : session ? (
             <>
               {/* Connect Wallet Button */}
-              <button className="hidden lg:flex items-center px-4 py-2 bg-white/10 border border-white/20 text-white rounded-md hover:bg-white/20 transition-colors">
+              {/* <button className="hidden lg:flex items-center px-4 py-2 bg-white/10 border border-white/20 text-white rounded-md hover:bg-white/20 transition-colors">
                 <WalletOutlined className="mr-2" />
                 Түрийвч холбох
-              </button>
+              </button> */}
               
               {/* User Menu */}
               <Dropdown

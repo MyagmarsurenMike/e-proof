@@ -18,6 +18,8 @@ import {
 import { Header } from '@/components/ui/Header';
 import { Footer } from '@/components/ui/Footer';
 import Link from 'next/link';
+import { DocumentSearch } from '@/components/ui/DocumentSearch';
+import { RecentDocuments } from '@/components/ui/RecentDocuments';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -247,89 +249,64 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Document Search Section */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <DocumentSearch />
+          </div>
+        </section>
+
+        {/* Recent Documents Section */}
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <RecentDocuments />
+          </div>
+        </section>
+
         {/* Testimonials Section */}
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <Title level={2} className="text-4xl font-bold text-gray-900 mb-4">
-                Мэргэжилтнүүдийн итгэх
-              </Title>
-              <Paragraph className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Манай хэрэглэгчид E-Proof-тай ажилласан туршлагаа хэрхэн дүгнэж байгааг хараарай.
-              </Paragraph>
+                <Title level={2} className="text-4xl font-bold text-white mb-4">
+                  Өнөөдөр баримт бичгээ хамгаалж эхлээрэй
+                </Title>
+                <Paragraph className="text-xl text-blue-100 mb-8">
+                  Блокчэйн хувьсгалд нэгдэж, чухал баримт бичгүүдээ байнгын, хуурамч байдлаас сэргийлсэн баталгаажуулалтаар хамгаалаарай.
+                </Paragraph>
+                <Space size="large">
+                  <Link href="/verify">
+                    <Button 
+                      type="default" 
+                      size="large" 
+                      icon={<CloudUploadOutlined />}
+                      className="h-14 px-8 text-lg font-semibold"
+                    >
+                      Баримт бичиг баталгаажуулах
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup">
+                    <Button 
+                      size="large" 
+                      className="h-14 px-8 text-lg font-semibold bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                      Бүртгэл үүсгэх
+                    </Button>
+                  </Link>
+                </Space>
             </div>
-            
-            <Row gutter={[32, 32]}>
-              {testimonials.map((testimonial, index) => (
-                <Col xs={24} md={8} key={index}>
-                  <Card className="h-full">
-                    <div className="mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <StarFilled key={i} className="text-yellow-500 mr-1" />
-                      ))}
-                    </div>
-                    <Paragraph className="text-gray-600 mb-4 italic">
-                      "{testimonial.comment}"
-                    </Paragraph>
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                        <UserOutlined className="text-gray-600" />
-                      </div>
-                      <div>
-                        <Text strong>{testimonial.name}</Text>
-                        <div className="text-gray-500 text-sm">{testimonial.role}</div>
-                      </div>
-                    </div>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
           </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-blue-600">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Title level={2} className="text-4xl font-bold text-white mb-4">
-              Өнөөдөр баримт бичгээ хамгаалж эхлээрэй
-            </Title>
-            <Paragraph className="text-xl text-blue-100 mb-8">
-              Блокчэйн хувьсгалд нэгдэж, чухал баримт бичгүүдээ байнгын, хуурамч байдлаас сэргийлсэн баталгаажуулалтаар хамгаалаарай.
-            </Paragraph>
-            <Space size="large">
-              <Link href="/verify">
-                <Button 
-                  type="default" 
-                  size="large" 
-                  icon={<CloudUploadOutlined />}
-                  className="h-14 px-8 text-lg font-semibold"
-                >
-                  Баримт бичиг баталгаажуулах
-                </Button>
-              </Link>
-              <Link href="/auth/signup">
-                <Button 
-                  size="large" 
-                  className="h-14 px-8 text-lg font-semibold bg-white/10 border-white/20 text-white hover:bg-white/20"
-                >
-                  Бүртгэл үүсгэх
-                </Button>
-              </Link>
-            </Space>
-          </div>
-        </section>
-
-        {/* Security Notice */}
-        <section className="py-8 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Alert
-              message="Таны аюулгүй байдал бол манай тэргүүлэх зорилго"
-              description="E-Proof нь таны баримт бичгүүд аюулгүй, нууцлагдсан байхыг хангахын тулд байгууллагын түвшний шифрлэлт болон блокчэйн технологи ашигладаг. Бид хэзээ ч таны эх баримт бичгийг хадгалдаггүй - зөвхөн криптограф хэшүүд блокчэйнд бүртгэгддэг."
-              type="info"
-              showIcon
-              icon={<SecurityScanOutlined />}
-            />
-          </div>
+                  {/* Security Notice */}
+          <section className="bg-gray-50">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <Alert
+                message="Таны аюулгүй байдал бол манай тэргүүлэх зорилго"
+                description="E-Proof нь таны баримт бичгүүд аюулгүй, нууцлагдсан байхыг хангахын тулд байгууллагын түвшний шифрлэлт болон блокчэйн технологи ашигладаг. Бид хэзээ ч таны эх баримт бичгийг хадгалдаггүй - зөвхөн криптограф хэшүүд блокчэйнд бүртгэгддэг."
+                type="info"
+                showIcon
+                icon={<SecurityScanOutlined />}
+              />
+            </div>
+          </section>
         </section>
       </main>
       

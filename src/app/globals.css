@@ -99,3 +99,92 @@ body {
   background-color: #1e40af !important;
   border-color: #1e40af !important;
 }
+
+/* Remove unwanted borders from Ant Design Form */
+.ant-form {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.ant-form::before,
+.ant-form::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+.ant-form-item {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+.ant-form-item::before,
+.ant-form-item::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+/* Remove any potential borders from form wrapper elements */
+.ant-form-horizontal,
+.ant-form-vertical,
+.ant-form-inline {
+  border: none !important;
+}
+
+/* Ensure form items have proper spacing without borders */
+.ant-form-item:not(:last-child) {
+  margin-bottom: 1.5rem;
+}
+
+/* Override any card form styling that might add borders */
+.ant-card .ant-form {
+  border: none !important;
+}
+
+.ant-card-body .ant-form {
+  border: none !important;
+}
+
+/* Custom border-none class for forms */
+.border-none,
+.border-none.ant-form {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.border-none::before,
+.border-none::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+/* Target potential wrapper elements */
+.ant-form-wrapper,
+.ant-form-container {
+  border: none !important;
+}
+
+/* Remove borders from form layout containers */
+form,
+form.ant-form,
+div[class*="ant-form"] {
+  border: none !important;
+}
+
+/* Ensure no pseudo-element borders on any form-related elements */
+*[class*="ant-form"]::before,
+*[class*="ant-form"]::after {
+  border: none !important;
+  content: none !important;
+}

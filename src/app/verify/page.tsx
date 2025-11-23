@@ -96,7 +96,7 @@ export default function VerifyPage() {
             </div>
 
             {/* Progress Steps */}
-            <Card className="mb-8">
+            <Card className="mb-8 flex space-between items-center">
               <Steps
                 current={currentStep}
                 items={steps}

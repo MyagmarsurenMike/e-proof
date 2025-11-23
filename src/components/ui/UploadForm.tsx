@@ -39,14 +39,6 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Generate SHA-256 hash of file
-  const generateFileHash = async (file: File): Promise<string> => {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
   const handleSubmit = async (values: any) => {
     if (!session?.user?.id) {
       message.error('Нэвтэрч орно уу');
@@ -73,29 +65,19 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
         });
       }, 200);
 
-      // Generate file hash
-      const fileHash = await generateFileHash(selectedFile);
-      
-      // Prepare document data with real user ID
-      const documentData = {
-        title: values.documentTitle,
-        description: values.description,
-        documentType: values.documentType as DocumentType,
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        mimeType: selectedFile.type,
-        fileHash,
-        userId: session.user.id, // Use real user ID from session
-        tags: values.tags || [],
-      };
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('title', values.documentTitle);
+      formData.append('description', values.description || '');
+      formData.append('documentType', values.documentType);
+      formData.append('userId', session.user.id);
+      formData.append('tags', JSON.stringify(values.tags || []));
 
-      // Call API to create document record
+      // Call API to create document record with file upload
       const response = await fetch('/api/documents', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(documentData),
+        body: formData, // Send FormData instead of JSON
       });
 
       const result = await response.json();
@@ -111,7 +93,9 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
 
       // Call the parent callback with the document data
       onVerificationStart({
-        ...documentData,
+        documentTitle: values.documentTitle,
+        documentType: values.documentType,
+        fileName: selectedFile.name,
         id: result.document.id,
         timestamp: result.document.createdAt,
         status: 'verifying',
@@ -213,6 +197,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
           layout="vertical"
           onFinish={handleSubmit}
           size="large"
+          className="border-none"
         >
           {/* Document Type Selection */}
           <Form.Item
