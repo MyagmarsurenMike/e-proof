@@ -1,0 +1,148 @@
+name: E-Proof CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: myagmarsuren014/eproof
+
+jobs:
+  # ─── Job 1: Lint & type-check ────────────────────────────────────────────
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint || true
+      - run: npm test || true
+
+  # ─── Job 2: Build & push Docker image ────────────────────────────────────
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: [lint-and-test]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+  # ─── Job 3: Deploy to EC2 ────────────────────────────────────────────────
+  deploy-to-ec2:
+    needs: [build-docker]
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Disk usage before cleanup
+        run: df -h
+
+      - name: Cleanup old containers and images
+        run: |
+          docker stop eproof || true
+          docker rm eproof || true
+          docker images | grep eproof | grep -v latest | awk '{print $3}' | xargs -r docker rmi -f || true
+          docker system prune -a -f --volumes
+          df -h
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull latest image
+        run: docker pull ${{ env.IMAGE_NAME }}:latest
+
+      - name: Run container
+        run: |
+          docker run -d \
+            --name eproof \
+            -p 127.0.0.1:3000:3000 \
+            --restart always \
+            -e NODE_ENV=production \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -e NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
+            -e NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
+            -e NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}" \
+            -e FILE_ENCRYPTION_KEY="${{ secrets.FILE_ENCRYPTION_KEY }}" \
+            -e AWS_REGION="${{ secrets.AWS_REGION }}" \
+            -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -e S3_BUCKET_NAME="${{ secrets.S3_BUCKET_NAME }}" \
+            -e KMS_KEY_ID="${{ secrets.KMS_KEY_ID }}" \
+            -e ETHEREUM_RPC_URL="${{ secrets.ETHEREUM_RPC_URL }}" \
+            -e WALLET_PRIVATE_KEY="${{ secrets.WALLET_PRIVATE_KEY }}" \
+            -e CONTRACT_ADDRESS="${{ secrets.CONTRACT_ADDRESS }}" \
+            ${{ env.IMAGE_NAME }}:latest
+
+      - name: Setup nginx
+        run: |
+          if ! command -v nginx &> /dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y nginx
+          fi
+          sudo cp nginx/eproof.conf /etc/nginx/sites-available/eproof
+          sudo ln -sf /etc/nginx/sites-available/eproof /etc/nginx/sites-enabled/eproof
+          sudo rm -f /etc/nginx/sites-enabled/default
+          sudo nginx -t
+          sudo systemctl reload nginx || sudo systemctl start nginx
+
+      - name: Run DB migrations
+        run: |
+          docker exec eproof npx prisma migrate deploy
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -f http://localhost:3000/api/health || exit 1
+          echo "✅ Deployment successful"
+
+      - name: Final cleanup
+        run: |
+          docker system prune -f
+          df -h

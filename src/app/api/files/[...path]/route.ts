@@ -51,7 +51,7 @@ export async function GET(
         const fileBuffer = await readFile(alternativePath);
         const contentType = getContentType(alternativePath);
         
-        return new NextResponse(fileBuffer, {
+        return new NextResponse(new Uint8Array(fileBuffer), {
           status: 200,
           headers: {
             'Content-Type': contentType,
@@ -79,7 +79,7 @@ export async function GET(
     console.log('Successfully serving file:', filePath, 'Content-Type:', contentType);
     
     // Return the file with appropriate headers
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
         'Content-Type': contentType,

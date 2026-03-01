@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Input, Button, Card, List, Typography, Tag, Space, message, Spin, Empty } from 'antd';
-import { SearchOutlined, FileTextOutlined, CalendarOutlined, HashOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { SearchOutlined, FileTextOutlined, CalendarOutlined, NumberOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 
 const { Title, Text, Paragraph } = Typography;
@@ -74,30 +74,30 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
     }
   };
 
-  const downloadFile = (document: Document) => {
-    if (!document.fileContent) {
+  const downloadFile = (doc: Document) => {
+    if (!doc.fileContent) {
       message.error('Файлын агуулга олдсонгүй');
       return;
     }
 
     try {
       // Convert base64 back to file
-      const byteCharacters = atob(document.fileContent);
+      const byteCharacters = atob(doc.fileContent);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: document.mimeType });
-      
+      const blob = new Blob([byteArray], { type: doc.mimeType });
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
-      link.download = document.fileName;
-      document.body.appendChild(link);
+      link.download = doc.fileName;
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
       message.success('Файл татагдлаа');

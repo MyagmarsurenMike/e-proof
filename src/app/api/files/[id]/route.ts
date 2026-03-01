@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getFileById, readFileFromDisk, fileExistsOnDisk } from '@/lib/fileStorage';
+import { prisma } from '@/lib/prisma';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -173,7 +174,7 @@ export async function GET(
       }).catch(() => {}); // Silently fail if prisma not available
     }
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers,
     });
@@ -264,7 +265,10 @@ export async function DELETE(
 
     const { id } = await context.params;
     
-    await softDeleteFile(id, session.user.id);
+    await prisma.file.update({
+      where: { id, userId: session.user.id },
+      data: { deletedAt: new Date() },
+    });
 
     return NextResponse.json({
       success: true,

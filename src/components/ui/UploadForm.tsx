@@ -22,6 +22,7 @@ import {
   LinkOutlined
 } from '@ant-design/icons';
 import { DocumentType } from '@/generated/prisma';
+import type { UploadProps, UploadFile } from 'antd';
 import { useSession } from 'next-auth/react';
 
 const { Dragger } = Upload;
@@ -157,7 +158,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
     }
   };
 
-  const uploadProps = {
+  const uploadProps: UploadProps = {
     name: 'file',
     multiple: false,
     accept: '.pdf,.doc,.docx,.txt,.jpg,.png',
@@ -172,8 +173,10 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
       uid: '-1',
       name: selectedFile.name,
       status: 'done' as const,
+      size: selectedFile.size,
+      type: selectedFile.type,
       originFileObj: selectedFile,
-    }] : [],
+    } as UploadFile] : [],
   };
 
   return (

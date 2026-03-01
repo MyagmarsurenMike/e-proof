@@ -131,10 +131,10 @@ export const RecentDocuments: React.FC<RecentDocumentsProps> = ({ className, lim
                   description={
                     <Space direction="vertical" size="small" className="w-full">
                       <Space wrap>
-                        <Tag color={getStatusColor(document.status)} size="small">
+                        <Tag color={getStatusColor(document.status)}>
                           {getStatusText(document.status)}
                         </Tag>
-                        <Tag size="small">{document.documentType}</Tag>
+                        <Tag>{document.documentType}</Tag>
                       </Space>
                       <Text type="secondary" className="text-xs">
                         <CalendarOutlined className="mr-1" />

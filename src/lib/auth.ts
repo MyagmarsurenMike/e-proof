@@ -47,8 +47,8 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
-            image: user.avatar,
+            name: user.name ?? undefined,
+            image: user.avatar ?? undefined,
           }
         } catch (error) {
           console.error('Auth error:', error)

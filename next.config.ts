@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'standalone', // Required for Docker deployment
   
   // Security headers
   async headers() {
@@ -68,9 +68,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['formidable'],
   
   // Turbopack configuration
-  turbopack: {
-    root: '/Users/myagmarsurennyamkhuu/TSA/e-proof',
-  },
+  turbopack: {},
 };
 
 export default nextConfig;

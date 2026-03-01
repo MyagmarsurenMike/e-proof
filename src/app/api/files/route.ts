@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { saveFile } from '@/lib/fileStorage'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
@@ -19,27 +20,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const savedFile = await prisma.file.create({
-      data: {
-        fileName: file.name,
-        mimeType: file.type,
-        fileSize: file.size,
-        data: buffer,
-        description,
-        tags,
-        userId,
-      },
-      select: {
-        id: true,
-        fileName: true,
-        mimeType: true,
-        fileSize: true,
-        description: true,
-        tags: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    })
+    const savedFile = await saveFile(buffer, file.name, file.type, userId, description, tags)
 
     return NextResponse.json(savedFile, { status: 201 })
   } catch (error) {
@@ -66,12 +47,12 @@ export async function GET(request: NextRequest) {
     }
 
     const files = await prisma.file.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       select: {
         id: true,
-        fileName: true,
+        originalName: true,
         mimeType: true,
-        fileSize: true,
+        size: true,
         description: true,
         tags: true,
         createdAt: true,

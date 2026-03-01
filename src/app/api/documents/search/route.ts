@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    let documents = []
+    let documents: object[] = []
 
     if (hash) {
       // Search by exact hash match

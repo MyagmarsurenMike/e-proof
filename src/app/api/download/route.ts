@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
 
     console.log('Signed file download successful:', { fileId, originalName: file.originalName });
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers,
     });
