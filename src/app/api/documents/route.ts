@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { userOperations, documentOperations, auditOperations } from '@/lib/database'
 import { DocumentType, VerificationStatus } from '@/generated/prisma'
 import { saveFiles, generateFileHash } from '@/lib/fileStorage'
+import { registerDocument } from '@/lib/blockchain'
 
 // GET /api/documents - Get user's documents
 export async function GET(request: NextRequest) {
@@ -77,6 +78,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if user exists
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    })
+
+    if (!userExists) {
+      console.error('User not found:', userId)
+      return NextResponse.json(
+        { error: 'Хэрэглэгч олдсонгүй. Та системээс гараад дахин нэвтэрнэ үү.' },
+        { status: 401 }
+      )
+    }
+
     // Validate file size (max 50MB)
     const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
     if (file.size > MAX_FILE_SIZE) {
@@ -134,7 +149,7 @@ export async function POST(request: NextRequest) {
     tempFiles = fileResults
     console.log('Files saved:', fileResults)
 
-    // Create the document with both file paths
+    // Create the document with both file paths and encrypted key blob
     console.log('Creating document in database...')
     const document = await Promise.race([
       documentOperations.createDocument({
@@ -145,8 +160,14 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         mimeType: file.type,
         fileHash,
-        rawFilePath: fileResults.rawFilePath,   // Store path to raw file
-        hashFilePath: fileResults.hashFilePath,  // Store path to hash file
+        rawFilePath: fileResults.rawFilePath ?? undefined,
+        hashFilePath: fileResults.hashFilePath ?? undefined,
+        s3Key: fileResults.s3Key ?? undefined,
+        // encryptedKey is null when KMS not configured (Phase 1 local key)
+        // .slice() produces Uint8Array<ArrayBuffer> as required by Prisma Bytes type
+        encryptedDataKey: fileResults.encryptedKey
+          ? fileResults.encryptedKey.slice() as Uint8Array<ArrayBuffer>
+          : undefined,
         userId,
         tags,
       }),
@@ -156,6 +177,23 @@ export async function POST(request: NextRequest) {
     ]) as any
 
     console.log('Document created:', document.id)
+
+    // Register hash on blockchain (non-blocking — don't fail upload if blockchain is down)
+    registerDocument(fileHash).then(async (txResult) => {
+      if (txResult) {
+        await prisma.document.update({
+          where: { id: document.id },
+          data: {
+            transactionId: txResult.transactionHash,
+            blockNumber: txResult.blockNumber,
+            networkId: txResult.networkId,
+            status: 'VERIFIED',
+            verifiedAt: new Date(),
+          },
+        }).catch(err => console.error('Error updating blockchain fields:', err))
+        console.log('[blockchain] Document verified on-chain:', txResult.transactionHash)
+      }
+    }).catch(err => console.error('[blockchain] Registration error:', err))
 
     // Log the action (non-blocking)
     auditOperations.createAuditLog({

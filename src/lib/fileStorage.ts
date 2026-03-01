@@ -2,6 +2,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { prisma } from './prisma';
+import { encryptFileWithKMS, decryptFileWithKMS } from './encrypt';
+import { isS3Configured, uploadToS3, downloadFromS3, deleteFromS3 } from './s3';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
@@ -37,41 +39,55 @@ export function generateFileHash(buffer: Buffer): string {
 }
 
 // Save files with dual storage (raw file + hash file)
+// Phase 3: uploads encrypted file to S3 when configured; falls back to local disk.
 export async function saveFiles(fileBuffer: Buffer, originalName: string) {
+  // Generate hash of the plaintext (for blockchain verification — must be pre-encryption)
+  const fileHash = generateFileHash(fileBuffer);
+
+  // Encrypt with KMS data key (falls back to local env key if KMS not configured)
+  const { encryptedBuffer, encryptedKey } = await encryptFileWithKMS(fileBuffer)
+
+  if (isS3Configured()) {
+    // --- Phase 3: S3 storage ---
+    let s3Key: string | undefined
+    try {
+      s3Key = await uploadToS3(encryptedBuffer, originalName)
+      console.log(`File uploaded to S3: ${s3Key}`);
+      return {
+        rawFilePath: null,   // no local path when using S3
+        hashFilePath: null,  // hash stored in DB, not on disk
+        s3Key,
+        fileHash,
+        encryptedKey,
+      };
+    } catch (error) {
+      if (s3Key) await deleteFromS3(s3Key).catch(() => {})
+      throw error;
+    }
+  }
+
+  // --- Phase 1/2 fallback: local disk ---
   await ensureUploadDir();
-  
   const storedFilename = generateUniqueFilename(originalName, 'main');
   const storedPath = path.join(UPLOAD_DIR, storedFilename);
-  
-  // Ensure hash directory exists
   const hashDir = path.join(UPLOAD_DIR, 'hashes');
   await fs.mkdir(hashDir, { recursive: true });
-  
-  // Generate hash of the file content
-  const fileHash = generateFileHash(fileBuffer);
-  const hashFilename = generateHashFilename(originalName);
-  const hashPath = path.join(hashDir, hashFilename);
-  
+  const hashPath = path.join(hashDir, generateHashFilename(originalName));
+
   try {
-    // Write main file to disk
-    await fs.writeFile(storedPath, fileBuffer);
-    
-    // Write hash file
+    await fs.writeFile(storedPath, encryptedBuffer);
     await fs.writeFile(hashPath, fileHash);
-    
-    console.log(`File saved: ${storedFilename}, Hash: ${hashFilename}`);
+    console.log(`File saved to disk (encrypted): ${storedFilename}`);
     return {
       rawFilePath: storedPath,
       hashFilePath: hashPath,
-      fileHash
+      s3Key: null,
+      fileHash,
+      encryptedKey,
     };
-    
   } catch (error) {
-    // Cleanup on error
-    try {
-      await fs.unlink(storedPath).catch(() => {});
-      await fs.unlink(hashPath).catch(() => {});
-    } catch {}
+    await fs.unlink(storedPath).catch(() => {});
+    await fs.unlink(hashPath).catch(() => {});
     throw error;
   }
 }
@@ -115,12 +131,15 @@ export async function saveFile(
   const hashPath = path.join(hashDir, hashFilename);
   
   try {
-    // Write main file to disk
-    await fs.writeFile(storedPath, fileBuffer);
-    
-    // Write hash file
+    // Encrypt with KMS data key (falls back to local env key if KMS not configured)
+    const { encryptedBuffer } = await encryptFileWithKMS(fileBuffer)
+
+    // Write encrypted file to disk
+    await fs.writeFile(storedPath, encryptedBuffer);
+
+    // Write hash file (hash of original plaintext)
     await fs.writeFile(hashPath, fileHash);
-    
+
     // Create database record
     const fileRecord = await prisma.file.create({
       data: {
@@ -164,9 +183,24 @@ export async function getFileById(id: string) {
   });
 }
 
-// Read file from disk
-export async function readFileFromDisk(storedPath: string): Promise<Buffer> {
-  return await fs.readFile(storedPath);
+// Read and decrypt a stored file — works for both S3 keys and local paths.
+// encryptedKey: KMS-encrypted blob from DB (null = Phase 1 local key)
+export async function readStoredFile(
+  location: string,          // S3 object key (starts with "documents/") or local fs path
+  encryptedKey: Buffer | null = null
+): Promise<Buffer> {
+  const encryptedBuffer = location.startsWith('documents/')
+    ? await downloadFromS3(location)
+    : await fs.readFile(location)
+  return decryptFileWithKMS(encryptedBuffer, encryptedKey)
+}
+
+// Legacy alias kept for backward compatibility
+export async function readFileFromDisk(
+  storedPath: string,
+  encryptedKey: Buffer | null = null
+): Promise<Buffer> {
+  return readStoredFile(storedPath, encryptedKey)
 }
 
 // Check if file exists on disk

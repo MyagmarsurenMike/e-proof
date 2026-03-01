@@ -44,3 +44,6 @@ next-env.d.ts
 
 # uploads
 /uploads
+
+# IDE / Documentation
+CLAUDE.md

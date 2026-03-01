@@ -87,9 +87,15 @@ model Document {
   fileName      String
   fileSize      Int
   mimeType      String
-  fileHash      String   @unique // SHA-256 hash of the document
-  rawFilePath   String?  // Path to the raw file for web display
-  hashFilePath  String?  // Path to the hash file for blockchain operations
+  fileHash      String   @unique // SHA-256 hash of the document (plaintext, for blockchain)
+  rawFilePath   String?  // Path to encrypted file on local disk (null when using S3)
+  hashFilePath  String?  // Path to hash file on local disk (null when using S3)
+  s3Key         String?  // S3 object key — set when S3_BUCKET_NAME is configured
+
+  // Encryption key management (Phase 2+)
+  // Stores the KMS-encrypted data key blob — never a plaintext key.
+  // Null for Phase 1 files encrypted with the shared env key (FILE_ENCRYPTION_KEY).
+  encryptedDataKey  Bytes?  // KMS-encrypted AES-256 data key blob
   
   // Blockchain verification data
   blockchainHash    String?   @unique // Hash stored on blockchain

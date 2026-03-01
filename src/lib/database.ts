@@ -79,8 +79,10 @@ export const documentOperations = {
     fileSize: number
     mimeType: string
     fileHash: string
-    rawFilePath?: string   // Path to raw file for display
-    hashFilePath?: string  // Path to hash file for blockchain
+    rawFilePath?: string        // Path to encrypted file on local disk (null when S3)
+    hashFilePath?: string       // Path to hash file on local disk (null when S3)
+    s3Key?: string              // S3 object key (set when S3_BUCKET_NAME configured)
+    encryptedDataKey?: Uint8Array<ArrayBuffer> // KMS-encrypted key blob (null = Phase 1 local key)
     userId: string
     tags?: string[]
   }) {
