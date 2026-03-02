@@ -131,9 +131,18 @@ jobs:
 
       - name: Health check
         run: |
-          sleep 10
-          curl -f http://localhost:3000/api/health || exit 1
-          echo "✅ Deployment successful"
+          echo "Waiting for container to be ready..."
+          for i in $(seq 1 12); do
+            if curl -sf http://localhost:3000/api/health; then
+              echo "✅ Deployment successful"
+              exit 0
+            fi
+            echo "Attempt $i/12 failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ Health check failed after 2 minutes"
+          docker logs eproof --tail 50
+          exit 1
 
       - name: Final cleanup
         run: |
