@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { readFileFromStorage, fileExists } from '@/lib/secureFileStorage';
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/file?id=FILE_ID - Protected file download
  * Streams file from private storage with authentication and access control

@@ -87,7 +87,7 @@ jobs:
           docker stop eproof || true
           docker rm eproof || true
           docker images | grep eproof | grep -v latest | awk '{print $3}' | xargs -r docker rmi -f || true
-          docker system prune -a -f --volumes
+          docker system prune -a -f
           df -h
 
       - name: Login to Docker Hub
@@ -131,10 +131,6 @@ jobs:
           sudo rm -f /etc/nginx/sites-enabled/default
           sudo nginx -t
           sudo systemctl reload nginx || sudo systemctl start nginx
-
-      - name: Run DB migrations
-        run: |
-          docker exec eproof npx prisma migrate deploy
 
       - name: Health check
         run: |

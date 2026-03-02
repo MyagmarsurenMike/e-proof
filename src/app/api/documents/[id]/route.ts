@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { documentOperations, verificationOperations, auditOperations } from '@/lib/database'
 import { VerificationStatus, StepType, StepStatus } from '@/generated/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/documents/[id] - Get specific document
 export async function GET(
   request: NextRequest,

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { generateFileHash } from '@/lib/fileStorage'
 import { verifyDocument } from '@/lib/blockchain'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * POST /api/verify
  * Upload a file to verify — recomputes its SHA-256 hash, checks DB and blockchain.

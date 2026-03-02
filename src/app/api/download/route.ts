@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { readFileFromStorage, fileExists, validateSignedToken } from '@/lib/secureFileStorage';
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/download?token=XYZ - Temporary file download with signed token
  * Allows temporary access to files without authentication using signed tokens

@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic'
+
 interface FileServeOptions {
   inline?: boolean;
   download?: boolean;

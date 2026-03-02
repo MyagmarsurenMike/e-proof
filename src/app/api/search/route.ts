@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { getFileTypeCategory } from '@/lib/fileValidation';
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/search - Search files with advanced filtering
  * Query parameters:

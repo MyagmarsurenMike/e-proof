@@ -4,8 +4,9 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 RUN npm ci
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npx prisma generate
 
 
 # Stage 2: Builder
@@ -14,6 +15,8 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Use the freshly generated client from deps (overrides any stale committed copy)
+COPY --from=deps /app/src/generated/prisma ./src/generated/prisma
 
 ARG NEXTAUTH_URL
 ARG NEXT_PUBLIC_APP_URL
@@ -21,9 +24,9 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL \
     NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
-RUN npx prisma generate
 RUN npm run build
 
 
@@ -52,10 +55,16 @@ COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
 # Smart contract ABI needed by blockchain.ts at runtime
 COPY --from=builder /app/contracts/EProof.abi.json ./contracts/EProof.abi.json
 
+# Prisma migrations — run at container startup
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+
 USER nextjs
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget -qO- http://localhost:3000/api/health || exit 1
 
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node server.js"]

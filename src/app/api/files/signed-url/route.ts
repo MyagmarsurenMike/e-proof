@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { generateSignedToken } from '@/lib/secureFileStorage';
 
+export const dynamic = 'force-dynamic'
+
 /**
  * POST /api/files/signed-url - Generate signed URL for temporary file access
  */

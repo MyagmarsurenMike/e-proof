@@ -5,6 +5,8 @@ import { DocumentType, VerificationStatus } from '@/generated/prisma'
 import { saveFiles, generateFileHash } from '@/lib/fileStorage'
 import { registerDocument } from '@/lib/blockchain'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/documents - Get user's documents
 export async function GET(request: NextRequest) {
   try {

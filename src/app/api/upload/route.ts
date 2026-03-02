@@ -5,6 +5,8 @@ import { validateFile, extractKeywords } from '@/lib/fileValidation';
 import { saveFileToStorage } from '@/lib/secureFileStorage';
 import { authOptions } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic'
+
 // Rate limiting store (in production, use Redis)
 const uploadAttempts = new Map<string, { count: number; resetTime: number }>();
 
