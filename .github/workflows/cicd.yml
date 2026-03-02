@@ -63,11 +63,20 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
+          target: runner
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.IMAGE_NAME }}:migrate
+          target: migrator
+          cache-from: type=gha
 
   # ─── Job 3: Deploy to EC2 ─────────────────────────────────────────────────
   deploy-to-ec2:
@@ -95,13 +104,15 @@ jobs:
       - name: Pull latest image
         run: docker pull ${{ env.IMAGE_NAME }}:latest
 
+      - name: Pull migrator image
+        run: docker pull ${{ env.IMAGE_NAME }}:migrate
+
       - name: Run database migrations
         run: |
           docker run --rm \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             -e DIRECT_URL="${{ secrets.DIRECT_URL }}" \
-            ${{ env.IMAGE_NAME }}:latest \
-            sh -c "node_modules/.bin/prisma migrate deploy"
+            ${{ env.IMAGE_NAME }}:migrate
 
       - name: Run container
         run: |
