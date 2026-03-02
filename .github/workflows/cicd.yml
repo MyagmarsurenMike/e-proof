@@ -95,6 +95,11 @@ jobs:
       - name: Pull latest image
         run: docker pull ${{ env.IMAGE_NAME }}:latest
 
+      - name: Run database migrations
+        run: |
+          DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            npx prisma migrate deploy --schema ./prisma/schema.prisma
+
       - name: Run container
         run: |
           docker run -d \
