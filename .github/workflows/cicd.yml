@@ -97,8 +97,11 @@ jobs:
 
       - name: Run database migrations
         run: |
-          DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            npx prisma migrate deploy --schema ./prisma/schema.prisma
+          docker run --rm \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -e DIRECT_URL="${{ secrets.DIRECT_URL }}" \
+            ${{ env.IMAGE_NAME }}:latest \
+            sh -c "node_modules/.bin/prisma migrate deploy"
 
       - name: Run container
         run: |
