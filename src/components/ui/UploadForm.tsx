@@ -21,7 +21,7 @@ import {
   SafetyCertificateOutlined,
   LinkOutlined
 } from '@ant-design/icons';
-import { DocumentType } from '@/generated/prisma';
+import { DocumentType } from '@/types/enums';
 import type { UploadProps, UploadFile } from 'antd';
 import { useSession } from 'next-auth/react';
 

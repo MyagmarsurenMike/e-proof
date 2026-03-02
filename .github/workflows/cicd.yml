@@ -27,8 +27,7 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - run: npm ci
-      - run: npx prisma generate
+      - run: DIRECT_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npm ci
       - run: npm run lint || true
       - run: npm test || true
 

@@ -5,8 +5,9 @@ RUN apk add --no-cache libc6-compat openssl
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
-RUN npm ci
-RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npx prisma generate
+RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" \
+    DIRECT_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" \
+    npm ci
 
 
 # Stage 2: Builder

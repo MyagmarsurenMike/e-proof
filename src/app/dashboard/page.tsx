@@ -16,7 +16,7 @@ import {
 } from '@ant-design/icons';
 import { Header } from '@/components/ui/Header';
 import { Footer } from '@/components/ui/Footer';
-import { DocumentType, VerificationStatus } from '@/generated/prisma';
+import { DocumentType, VerificationStatus } from '@/types/enums';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 

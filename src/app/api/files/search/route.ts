@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       keywords: file.keywords,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
-      user: file.user,
+      ownerId: file.ownerId,
     }));
 
     return NextResponse.json({

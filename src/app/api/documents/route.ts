@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { userOperations, documentOperations, auditOperations } from '@/lib/database'
-import { DocumentType, VerificationStatus } from '@/generated/prisma'
+import { DocumentType, VerificationStatus } from '@/generated/prisma/client'
 import { saveFiles, generateFileHash } from '@/lib/fileStorage'
 import { registerDocument } from '@/lib/blockchain'
 

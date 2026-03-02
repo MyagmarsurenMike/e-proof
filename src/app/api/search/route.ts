@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       tags: file.tags,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
-      user: file.user,
+      ownerId: file.ownerId,
       fileType: getFileTypeCategory(file.mimeType)
     }));
 
@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
       tags: file.tags,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
-      user: file.user,
+      ownerId: file.ownerId,
       fileType: getFileTypeCategory(file.mimeType)
     }));
 

@@ -1,5 +1,5 @@
 import { prisma } from './prisma'
-import { DocumentType, VerificationStatus, StepType, StepStatus } from '@/generated/prisma'
+import { DocumentType, VerificationStatus, StepType, StepStatus } from '@/generated/prisma/client'
 import crypto from 'crypto'
 
 // Helper function to add timeout to database operations

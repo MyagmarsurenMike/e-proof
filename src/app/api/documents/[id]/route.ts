@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { documentOperations, verificationOperations, auditOperations } from '@/lib/database'
-import { VerificationStatus, StepType, StepStatus } from '@/generated/prisma'
+import { VerificationStatus, StepType, StepStatus } from '@/generated/prisma/client'
 
 export const dynamic = 'force-dynamic'
 

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       updatedAt: file.updatedAt,
       deletedAt: file.deletedAt,
       fileType: getFileTypeCategory(file.mimeType),
-      user: file.user
+      ownerId: file.ownerId
     }));
 
     return NextResponse.json({
