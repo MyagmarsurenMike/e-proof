@@ -1,30 +1,27 @@
 import { PrismaClient } from '@/generated/prisma'
+import { withAccelerate } from '@prisma/extension-accelerate'
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-export const prisma =
-  globalForPrisma.prisma ??
+const prismaClientSingleton = () =>
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     datasourceUrl: process.env.DATABASE_URL,
-  })
+  }).$extends(withAccelerate())
 
-// Add connection error handling
-prisma.$on('error' as never, (e: any) => {
-  console.error('Prisma error:', e)
-})
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>
 
-// Ensure clean shutdown
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClientSingleton | undefined
+}
+
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
+
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
-  
-  // Add graceful shutdown
+
   process.on('SIGTERM', async () => {
     await prisma.$disconnect()
   })
-  
+
   process.on('SIGINT', async () => {
     await prisma.$disconnect()
   })

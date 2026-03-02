@@ -4,19 +4,32 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, closed]
   workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to perform"
+        required: true
+        default: "provision"
+        type: choice
+        options:
+          - provision
+          - cleanup
+
+env:
+  IMAGE_NAME: myagmarsuren014/eproof
+  PRISMA_POSTGRES_SERVICE_TOKEN: ${{ secrets.PRISMA_POSTGRES_SERVICE_TOKEN }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DB_NAME: ${{ github.event.pull_request.number != null && format('eproof-pr-{0}', github.event.pull_request.number) || format('eproof-run-{0}', github.run_number) }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  IMAGE_NAME: myagmarsuren014/eproof
-
 jobs:
   # ─── Job 1: Lint & type-check ────────────────────────────────────────────
   lint-and-test:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -32,8 +45,89 @@ jobs:
       - run: npm run lint || true
       - run: npm test || true
 
-  # ─── Job 2: Build & push Docker image ────────────────────────────────────
+  # ─── Job 2: Provision per-PR preview database ────────────────────────────
+  provision-database:
+    if: |
+      (github.event_name == 'pull_request' && github.event.action != 'closed') ||
+      (github.event_name == 'workflow_dispatch' && inputs.action == 'provision')
+    runs-on: ubuntu-latest
+    needs: [lint-and-test]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Get Project ID
+        id: project
+        run: |
+          PROJECT_ID=$(echo "$DATABASE_URL" | grep -oP '(?<=__)[^_]+(?=__[^_]+$)' || echo "")
+          if [ -z "$PROJECT_ID" ]; then
+            RESPONSE=$(curl -s -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+              https://api.prisma.io/v1/projects)
+            PROJECT_ID=$(echo "$RESPONSE" | jq -r '.data[0].id')
+          fi
+          echo "id=$PROJECT_ID" >> $GITHUB_OUTPUT
+
+      - name: Sanitize DB Name
+        run: echo "DB_NAME=$(echo "$DB_NAME" | tr '/' '_' | tr '-' '_' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Find Existing Database
+        id: find-db
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+            https://api.prisma.io/v1/projects/${{ steps.project.outputs.id }}/databases)
+          DB_ID=$(echo "$RESPONSE" | jq -r ".data[]? | select(.name == \"$DB_NAME\") | .id")
+          echo "id=$DB_ID" >> $GITHUB_OUTPUT
+
+      - name: Create or Get Connection String
+        id: connection
+        run: |
+          if [ -n "${{ steps.find-db.outputs.id }}" ]; then
+            echo "Using existing database..."
+            RESPONSE=$(curl -s -X POST \
+              -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"name":"read_write_key"}' \
+              https://api.prisma.io/v1/databases/${{ steps.find-db.outputs.id }}/connections)
+          else
+            echo "Creating new database..."
+            RESPONSE=$(curl -s -X POST \
+              -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"name\": \"$DB_NAME\", \"region\": \"us-east-1\"}" \
+              https://api.prisma.io/v1/projects/${{ steps.project.outputs.id }}/databases)
+          fi
+          CONNECTION_STRING=$(echo "$RESPONSE" | jq -r '.data.connectionString')
+          echo "url=$CONNECTION_STRING" >> $GITHUB_OUTPUT
+
+      - name: Run migrations on preview DB
+        run: |
+          export DIRECT_URL="${{ steps.connection.outputs.url }}"
+          export DATABASE_URL="${{ steps.connection.outputs.url }}"
+          npx prisma generate
+          npx prisma migrate deploy
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🗄️ **Preview Database Ready!**\n\n✅ Database: \`${{ env.DB_NAME }}\`\n✅ Project: \`${{ steps.project.outputs.id }}\``
+            })
+
+  # ─── Job 3: Build & push Docker image ────────────────────────────────────
   build-docker:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     needs: [lint-and-test]
     timeout-minutes: 20
@@ -70,7 +164,45 @@ jobs:
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
 
-  # ─── Job 3: Deploy to EC2 ────────────────────────────────────────────────
+  # ─── Job 4: Cleanup PR preview database on close ─────────────────────────
+  cleanup-database:
+    if: |
+      (github.event_name == 'pull_request' && github.event.action == 'closed') ||
+      (github.event_name == 'workflow_dispatch' && inputs.action == 'cleanup')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get Project ID
+        id: project
+        run: |
+          PROJECT_ID=$(echo "$DATABASE_URL" | grep -oP '(?<=__)[^_]+(?=__[^_]+$)' || echo "")
+          if [ -z "$PROJECT_ID" ]; then
+            RESPONSE=$(curl -s -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+              https://api.prisma.io/v1/projects)
+            PROJECT_ID=$(echo "$RESPONSE" | jq -r '.data[0].id')
+          fi
+          echo "id=$PROJECT_ID" >> $GITHUB_OUTPUT
+
+      - name: Sanitize DB Name
+        run: echo "DB_NAME=$(echo "$DB_NAME" | tr '/' '_' | tr '-' '_' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Delete preview database
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+            https://api.prisma.io/v1/projects/${{ steps.project.outputs.id }}/databases)
+          DB_ID=$(echo "$RESPONSE" | jq -r ".data[]? | select(.name == \"$DB_NAME\") | .id")
+
+          if [ -n "$DB_ID" ]; then
+            echo "Deleting database $DB_NAME..."
+            curl -s -X DELETE \
+              -H "Authorization: Bearer $PRISMA_POSTGRES_SERVICE_TOKEN" \
+              https://api.prisma.io/v1/databases/$DB_ID
+            echo "✅ Preview database deleted"
+          else
+            echo "Database $DB_NAME not found, skipping"
+          fi
+
+  # ─── Job 5: Deploy to EC2 ─────────────────────────────────────────────────
   deploy-to-ec2:
     needs: [build-docker]
     if: github.ref == 'refs/heads/main'
@@ -107,6 +239,7 @@ jobs:
             --restart always \
             -e NODE_ENV=production \
             -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -e DIRECT_URL="${{ secrets.DIRECT_URL }}" \
             -e NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
             -e NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
             -e NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}" \
@@ -142,6 +275,3 @@ jobs:
         run: |
           docker system prune -f
           df -h
-
-
-          # test
