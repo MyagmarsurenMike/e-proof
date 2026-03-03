@@ -48,15 +48,21 @@ export async function uploadToS3(
   const safeName = originalFileName.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100)
   const s3Key = `documents/${uuid}/${safeName}`
 
-  await client.send(
-    new PutObjectCommand({
-      Bucket: BUCKET,
-      Key: s3Key,
-      Body: encryptedBuffer,
-      ContentType: 'application/octet-stream', // always encrypted binary
-      ServerSideEncryption: 'AES256',           // S3-side encryption on top
-    })
-  )
+  try {
+    await client.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: s3Key,
+        Body: encryptedBuffer,
+        ContentType: 'application/octet-stream', // always encrypted binary
+        ServerSideEncryption: 'AES256',           // S3-side encryption on top
+      })
+    )
+  } catch (err: any) {
+    const code = err?.Code || err?.name || 'S3Error'
+    const msg = err?.message || String(err)
+    throw new Error(`S3 PutObject failed [${code}]: ${msg}`)
+  }
 
   return s3Key
 }
@@ -71,9 +77,14 @@ export async function downloadFromS3(s3Key: string): Promise<Buffer> {
     throw new Error('S3 is not configured.')
   }
 
-  const res = await client.send(
-    new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
-  )
+  let res
+  try {
+    res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }))
+  } catch (err: any) {
+    const code = err?.Code || err?.name || 'S3Error'
+    const msg = err?.message || String(err)
+    throw new Error(`S3 GetObject failed [${code}]: ${msg}`)
+  }
 
   if (!res.Body) {
     throw new Error(`S3 returned empty body for key: ${s3Key}`)
@@ -95,5 +106,11 @@ export async function deleteFromS3(s3Key: string): Promise<void> {
   const client = getS3Client()
   if (!client || !BUCKET) return
 
-  await client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: s3Key }))
+  try {
+    await client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: s3Key }))
+  } catch (err: any) {
+    const code = err?.Code || err?.name || 'S3Error'
+    const msg = err?.message || String(err)
+    throw new Error(`S3 DeleteObject failed [${code}]: ${msg}`)
+  }
 }
