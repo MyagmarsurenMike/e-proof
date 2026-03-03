@@ -88,14 +88,21 @@ export default function DocumentPage() {
   }
 
   const downloadFile = () => {
-    if (document?.rawFilePath) {
-      window.open(`/api/files/${document.rawFilePath}`, '_blank')
-    }
+    window.open(`/api/documents/${document?.id}/file?download=true`, '_blank')
   }
 
   const downloadHashFile = () => {
-    if (document?.hashFilePath) {
-      window.open(`/api/hashes/${document.hashFilePath}`, '_blank')
+    // Hash is shown inline — copy to clipboard instead of downloading a file
+    if (document?.fileHash) {
+      const el = window.document.createElement('textarea')
+      el.value = document.fileHash
+      el.style.position = 'fixed'
+      el.style.opacity = '0'
+      window.document.body.appendChild(el)
+      el.focus()
+      el.select()
+      window.document.execCommand('copy')
+      window.document.body.removeChild(el)
     }
   }
 
@@ -252,14 +259,14 @@ export default function DocumentPage() {
             <div className="text-center">
               {isImage ? (
                 <img
-                  src={`/api/files/${document.rawFilePath}`}
+                  src={`/api/documents/${document.id}/file`}
                   alt={document.fileName}
                   className="max-w-full h-auto mx-auto rounded-lg shadow-lg"
                   style={{ maxHeight: '600px' }}
                 />
               ) : isPDF ? (
                 <iframe
-                  src={`/api/files/${document.rawFilePath}`}
+                  src={`/api/documents/${document.id}/file`}
                   width="100%"
                   height="600px"
                   className="border rounded-lg"

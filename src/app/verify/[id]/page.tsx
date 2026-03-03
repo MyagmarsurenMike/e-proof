@@ -73,15 +73,15 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
       navigator.clipboard.writeText(text);
     } else {
       // Fallback for HTTP (non-secure context)
-      const el = document.createElement('textarea');
+      const el = window.document.createElement('textarea');
       el.value = text;
       el.style.position = 'fixed';
       el.style.opacity = '0';
-      document.body.appendChild(el);
+      window.document.body.appendChild(el);
       el.focus();
       el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
+      window.document.execCommand('copy');
+      window.document.body.removeChild(el);
     }
   };
 

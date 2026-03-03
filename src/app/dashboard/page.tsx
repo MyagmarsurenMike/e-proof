@@ -134,15 +134,15 @@ export default function Dashboard() {
         if (navigator.clipboard && window.isSecureContext) {
           navigator.clipboard.writeText(shareLink);
         } else {
-          const el = document.createElement('textarea');
+          const el = window.document.createElement('textarea');
           el.value = shareLink;
           el.style.position = 'fixed';
           el.style.opacity = '0';
-          document.body.appendChild(el);
+          window.document.body.appendChild(el);
           el.focus();
           el.select();
-          document.execCommand('copy');
-          document.body.removeChild(el);
+          window.document.execCommand('copy');
+          window.document.body.removeChild(el);
         }
         message.success('Хуваалцах холбоос хуулагдлаа');
         break;
