@@ -24,6 +24,7 @@ interface DocumentData {
   status: VerificationStatus;
   createdAt: string;
   verifiedAt?: string;
+  fileHash: string;
   blockchainHash?: string;
   transactionId?: string;
   blockNumber?: string;
@@ -68,7 +69,20 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+    } else {
+      // Fallback for HTTP (non-secure context)
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
   };
 
   const getDocumentTypeLabel = (type: DocumentType) => {
@@ -224,7 +238,7 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
           </Card>
 
           {/* Blockchain Information */}
-          {document.status === VerificationStatus.VERIFIED && document.blockchainHash && (
+          {document.status === VerificationStatus.VERIFIED && document.fileHash && (
             <Card title="Блокчэйн баталгаажуулалт" className="shadow-lg border-0 mb-8">
               <Alert
                 message="Блокчэйн баталгаажуулалт"
@@ -236,16 +250,16 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
               />
               
               <Descriptions column={1} size="middle">
-                <Descriptions.Item label="Блокчэйн хэш">
+                <Descriptions.Item label="Баримт бичгийн хэш">
                   <div className="flex items-center space-x-2">
                     <Text code className="text-sm break-all">
-                      {document.blockchainHash}
+                      {document.fileHash}
                     </Text>
-                    <Button 
-                      type="text" 
-                      size="small" 
+                    <Button
+                      type="text"
+                      size="small"
                       icon={<CopyOutlined />}
-                      onClick={() => copyToClipboard(document.blockchainHash!)}
+                      onClick={() => copyToClipboard(document.fileHash)}
                     />
                   </div>
                 </Descriptions.Item>

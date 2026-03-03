@@ -131,8 +131,19 @@ export default function FileDownload({
   const copySignedUrl = async () => {
     if (signedUrl) {
       try {
-        await navigator.clipboard.writeText(signedUrl);
-        // You could add a toast notification here
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(signedUrl);
+        } else {
+          const el = document.createElement('textarea');
+          el.value = signedUrl;
+          el.style.position = 'fixed';
+          el.style.opacity = '0';
+          document.body.appendChild(el);
+          el.focus();
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+        }
       } catch (error) {
         console.error('Failed to copy URL:', error);
       }

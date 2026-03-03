@@ -131,7 +131,19 @@ export default function Dashboard() {
       case 'share':
         // Copy shareable link to clipboard
         const shareLink = `${window.location.origin}/verify/${document.id}`;
-        navigator.clipboard.writeText(shareLink);
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(shareLink);
+        } else {
+          const el = document.createElement('textarea');
+          el.value = shareLink;
+          el.style.position = 'fixed';
+          el.style.opacity = '0';
+          document.body.appendChild(el);
+          el.focus();
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+        }
         message.success('Хуваалцах холбоос хуулагдлаа');
         break;
       case 'view':
