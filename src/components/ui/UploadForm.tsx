@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Card, 
-  Form, 
-  Upload, 
-  Button, 
-  Input, 
-  Select, 
-  Space, 
-  Typography, 
-  Alert,
+import {
+  Card,
+  Form,
+  Upload,
+  Button,
+  Input,
+  Select,
+  Space,
+  Typography,
   Progress,
   message
 } from 'antd';
@@ -191,8 +190,8 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
         </Paragraph>
       </div>
 
-      <Card 
-        className="shadow-lg border-0"
+      <Card
+        style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}
         styles={{ body: { padding: '2rem' } }}
       >
         <Form
@@ -299,13 +298,9 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
           {uploading && (
             <div className="mb-6">
               <Text strong>Оруулж, боловсруулж байна...</Text>
-              <Progress 
-                percent={uploadProgress} 
+              <Progress
+                percent={uploadProgress}
                 status={uploadProgress === 100 ? 'success' : 'active'}
-                strokeColor={{
-                  '0%': '#1e3a8a',
-                  '100%': '#3b82f6',
-                }}
               />
               <div className="mt-2 text-sm text-gray-600">
                 {uploadProgress < 30 && 'Файлыг татаж байна...'}
@@ -315,15 +310,6 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
               </div>
             </div>
           )}
-
-          {/* Info Alert */}
-          <Alert
-            message="Блокчэйн баталгаажуулалтын үйл явц"
-            description="Таны баримт бичгийг хэшлэж, байнгын баталгаажуулалтын тулд блокчэйнд хадгална. Эх баримт бичиг хэзээ ч хадгалагддаггүй - зөвхөн криптограф хурууны хээ л хадгалагдана."
-            type="info"
-            showIcon
-            className="mb-6"
-          />
 
           {/* Submit Button */}
           <Form.Item>
