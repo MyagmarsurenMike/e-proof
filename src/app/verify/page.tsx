@@ -15,7 +15,10 @@ interface VerificationData {
   documentTitle: string;
   documentType: string;
   timestamp: string;
-  status: 'verifying' | 'verified' | 'failed';
+  status: 'verified' | 'failed' | 'verifying';
+  id?: string;
+  fileName?: string;
+  shareableLink?: string;
   description?: string;
   blockchainHash?: string;
   transactionId?: string;
@@ -26,7 +29,7 @@ export default function VerifyPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [verificationData, setVerificationData] = useState<VerificationData | null>(null);
 
-  const handleVerificationStart = (data: any) => {
+  const handleVerificationStart = (data: VerificationData) => {
     setVerificationData(data);
     setCurrentStep(1);
 

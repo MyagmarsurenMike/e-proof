@@ -28,8 +28,18 @@ const { Dragger } = Upload;
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
+interface VerificationStartData {
+  documentTitle: string;
+  documentType: string;
+  fileName: string;
+  id: string;
+  timestamp: string;
+  status: 'verified' | 'failed' | 'verifying';
+  shareableLink?: string;
+}
+
 interface UploadFormProps {
-  onVerificationStart: (data: any) => void;
+  onVerificationStart: (data: VerificationStartData) => void;
 }
 
 export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) => {
@@ -39,7 +49,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Record<string, string>) => {
     if (!session?.user?.id) {
       message.error('Нэвтэрч орно уу');
       return;
@@ -72,7 +82,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
       formData.append('description', values.description || '');
       formData.append('documentType', values.documentType);
       formData.append('userId', session.user.id);
-      formData.append('tags', JSON.stringify(values.tags || []));
+      formData.append('tags', JSON.stringify(values.tags ? [values.tags] : []));
 
       // Call API to create document record with file upload
       const response = await fetch('/api/documents', {
@@ -105,9 +115,9 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
       // Start verification process with real user ID
       await startVerificationProcess(result.document.id);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      message.error(error.message || 'Файл оруулахад алдаа гарлаа');
+      message.error(error instanceof Error ? error.message : 'Файл оруулахад алдаа гарлаа');
       setUploadProgress(0);
     } finally {
       setUploading(false);
