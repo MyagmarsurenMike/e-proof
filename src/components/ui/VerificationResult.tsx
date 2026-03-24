@@ -1,17 +1,16 @@
 'use client';
 
 import React from 'react';
-import { 
-  Card, 
-  Result, 
-  Typography, 
-  Space, 
-  Tag, 
-  Button, 
-  Descriptions, 
+import {
+  Card,
+  Result,
+  Typography,
+  Space,
+  Tag,
+  Button,
+  Descriptions,
   Timeline,
   Spin,
-  Alert
 } from 'antd';
 import { 
   CheckCircleOutlined, 
@@ -83,13 +82,13 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'verified':
-        return <CheckCircleOutlined className="text-green-500" />;
+        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
       case 'verifying':
         return <Spin indicator={<ClockCircleOutlined spin />} />;
       case 'failed':
-        return <ExclamationCircleOutlined className="text-red-500" />;
+        return <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />;
       default:
-        return <ClockCircleOutlined className="text-gray-400" />;
+        return <ClockCircleOutlined style={{ color: '#d9d9d9' }} />;
     }
   };
 
@@ -116,7 +115,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Main Status Card */}
-      <Card className="shadow-lg border-0">
+      <Card style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
         <Result
           icon={getStatusIcon(data.status)}
           title={
@@ -152,8 +151,8 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
       </Card>
 
       {/* Document Details */}
-      <Card title="Баримт бичгийн мэдээлэл" className="shadow-lg border-0">
-        <Descriptions column={1} size="middle">
+      <Card title="Баримт бичгийн мэдээлэл" style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+        <Descriptions column={1} size="middle" bordered={false}>
           <Descriptions.Item label="Гарчиг">
             <Text strong>{data.documentTitle}</Text>
           </Descriptions.Item>
@@ -177,7 +176,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
       </Card>
 
       {/* Verification Process Timeline */}
-      <Card title="Баталгаажуулалтын үйл явц" className="shadow-lg border-0">
+      <Card title="Баталгаажуулалтын үйл явц" style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
         <Timeline
           items={verificationSteps.map((step, index) => ({
             dot: getStatusIcon(step.status),
@@ -197,16 +196,8 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
 
       {/* Blockchain Information */}
       {data.status === 'verified' && (
-        <Card title="Блокчэйн баталгаажуулалтын дэлгэрэнгүй" className="shadow-lg border-0">
-          <Alert
-            message="Блокчэйний байнгын бичлэг"
-            description="Энэ баримт бичгийн криптограф хэш блокчэйнд байнга бүртгэгдсэн бөгөөд жинхэнэ байдлыг хангаж, хуурамч байдлаас сэргийлдэг."
-            type="success"
-            showIcon
-            className="mb-4"
-          />
-          
-          <Descriptions column={1} size="middle">
+        <Card title="Блокчэйн баталгаажуулалтын дэлгэрэнгүй" style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <Descriptions column={1} size="middle" bordered={false}>
             <Descriptions.Item label="Баримт бичгийн хэш">
               <div className="flex items-center space-x-2">
                 <Text code className="text-sm">
