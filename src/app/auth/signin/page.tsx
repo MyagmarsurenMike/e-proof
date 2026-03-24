@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
-import { Card, Form, Input, Button, Alert, Typography, Divider } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
-import { Header } from '@/components/ui/Header';
+import { Card, Form, Input, Button, Alert, Divider } from 'antd';
+import { LockOutlined, MailOutlined } from '@ant-design/icons';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/ui/Footer';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-const { Title, Text } = Typography;
 
 export default function SignIn() {
   const [form] = Form.useForm();
@@ -44,33 +42,22 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      
-      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <Title level={2} className="mb-2">
-              Нэвтрэх
-            </Title>
-            <Text className="text-gray-600">
-              Э-Нотолгоо системд нэвтэрч, баримт бичгээ баталгаажуулна уу
-            </Text>
+      <PublicNav />
+
+      <main className="flex-1 flex items-center justify-center py-16 px-4">
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          {/* Logo + title */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-[#0f172a] mb-1">Нэвтрэх</h1>
+            <p className="text-sm text-[#64748b]">
+              Э-Нотолгоо системд нэвтэрч баримт бичгээ удирдана уу
+            </p>
           </div>
 
-          <Card className="shadow-lg border-0">
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleSubmit}
-              size="large"
-            >
+          <Card style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+            <Form form={form} layout="vertical" onFinish={handleSubmit} size="large">
               {error && (
-                <Alert
-                  message={error}
-                  type="error"
-                  showIcon
-                  className="mb-4"
-                />
+                <Alert message={error} type="error" showIcon className="mb-4" />
               )}
 
               <Form.Item
@@ -78,13 +65,10 @@ export default function SignIn() {
                 label="Имэйл хаяг"
                 rules={[
                   { required: true, message: 'Имэйл хаягаа оруулна уу' },
-                  { type: 'email', message: 'Зөв имэйл хаяг оруулна уу' }
+                  { type: 'email', message: 'Зөв имэйл хаяг оруулна уу' },
                 ]}
               >
-                <Input
-                  prefix={<MailOutlined />}
-                  placeholder="your@email.com"
-                />
+                <Input prefix={<MailOutlined />} placeholder="your@email.com" />
               </Form.Item>
 
               <Form.Item
@@ -92,22 +76,14 @@ export default function SignIn() {
                 label="Нууц үг"
                 rules={[
                   { required: true, message: 'Нууц үгээ оруулна уу' },
-                  { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой' }
+                  { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой' },
                 ]}
               >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="Нууц үгээ оруулна уу"
-                />
+                <Input.Password prefix={<LockOutlined />} placeholder="Нууц үгээ оруулна уу" />
               </Form.Item>
 
               <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={loading}
-                  className="w-full h-12"
-                >
+                <Button type="primary" htmlType="submit" loading={loading} className="w-full h-10">
                   Нэвтрэх
                 </Button>
               </Form.Item>
@@ -116,30 +92,17 @@ export default function SignIn() {
             <Divider plain>Эсвэл</Divider>
 
             <div className="text-center">
-              <Text className="text-gray-600">
+              <span className="text-sm text-[#64748b]">
                 Бүртгэл байхгүй үү?{' '}
-                <Link href="/auth/signup" className="text-blue-600 hover:text-blue-500">
+                <Link href="/auth/signup" className="text-[#1e3a8a]">
                   Бүртгүүлэх
                 </Link>
-              </Text>
+              </span>
             </div>
           </Card>
-
-          <div className="text-center">
-            <Text className="text-gray-500 text-sm">
-              Нэвтрэх нь манай{' '}
-              <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-                Үйлчилгээний нөхцөл
-              </Link>{' '}
-              болон{' '}
-              <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
-                Нууцлалын бодлого
-              </Link>-г хүлээн зөвшөөрч байна гэсэн үг юм.
-            </Text>
-          </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
