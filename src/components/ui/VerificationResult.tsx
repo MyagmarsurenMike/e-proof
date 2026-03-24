@@ -184,7 +184,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
               <div>
                 <Text strong>{step.title}</Text>
                 {step.timestamp && (
-                  <div className="text-sm text-gray-500 mt-1">
+                  <div className="text-sm text-[#64748b] mt-1">
                     {new Date(step.timestamp).toLocaleString()}
                   </div>
                 )}

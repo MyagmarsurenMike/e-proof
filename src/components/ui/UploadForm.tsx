@@ -194,7 +194,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
         <Title level={2} className="mb-4">
           Блокчэйнд баримт бичгээ баталгаажуулах
         </Title>
-        <Paragraph className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+        <Paragraph className="text-lg text-[#64748b] max-w-2xl mx-auto">
           Гэрээ, гэрчилгээ эсвэл чухал баримт бичгүүдээ оруулж жинхэнэ байдлыг баталгаажуулж, 
           блокчэйнд өөрчлөгдөшгүй нотолгоог хадгалаарай.
         </Paragraph>
@@ -274,14 +274,14 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
               return e && e.fileList;
             }}
           >
-            <Dragger {...uploadProps} className="border-dashed border-2 border-gray-300 dark:border-gray-600">
+            <Dragger {...uploadProps} className="border-dashed border-2 border-[#e2e8f0]">
               <p className="ant-upload-drag-icon">
                 <InboxOutlined className="text-4xl text-blue-500" />
               </p>
               <p className="ant-upload-text text-lg font-medium">
                 Файлыг энд дарж эсвэл чирч оруулна уу
               </p>
-              <p className="ant-upload-hint text-gray-500">
+              <p className="ant-upload-hint text-[#64748b]">
                 PDF, Word баримт бичиг, зурагийг дэмждэг. Файлын хэмжээний дээд хязгаар: 10MB
               </p>
               {selectedFile && (
@@ -312,7 +312,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
                 percent={uploadProgress}
                 status={uploadProgress === 100 ? 'success' : 'active'}
               />
-              <div className="mt-2 text-sm text-gray-600">
+              <div className="mt-2 text-sm text-[#64748b]">
                 {uploadProgress < 30 && 'Файлыг татаж байна...'}
                 {uploadProgress >= 30 && uploadProgress < 60 && 'Файлын хэш үүсгэж байна...'}
                 {uploadProgress >= 60 && uploadProgress < 90 && 'Өгөгдлийн санд хадгалж байна...'}
