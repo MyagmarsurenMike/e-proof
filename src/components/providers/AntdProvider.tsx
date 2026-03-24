@@ -9,14 +9,14 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
       theme={{
         token: {
           colorPrimary: '#1e3a8a',
-          colorLink: '#3b82f6',
-          borderRadius: 8,
+          colorLink: '#1e3a8a',
+          borderRadius: 6,
+          colorBgContainer: '#ffffff',
+          boxShadow: 'none',
+          boxShadowSecondary: 'none',
         },
       }}
-      // Suppress React version warning since everything works fine
-      warning={{
-        strict: false,
-      }}
+      warning={{ strict: false }}
     >
       {children}
     </ConfigProvider>

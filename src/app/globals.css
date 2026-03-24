@@ -2,12 +2,11 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #1e293b;
-  --navy-blue: #1e3a8a;
-  --navy-blue-dark: #1e40af;
-  --silver: #e5e7eb;
-  --silver-light: #f9fafb;
-  --silver-dark: #d1d5db;
+  --foreground: #0f172a;
+  --border: #e2e8f0;
+  --text-secondary: #64748b;
+  --navy: #1e3a8a;
+  --bg-secondary: #f8fafc;
 }
 
 @theme inline {
@@ -15,176 +14,102 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
-  /* Custom theme colors */
-  --color-navy: var(--navy-blue);
-  --color-navy-dark: var(--navy-blue-dark);
-  --color-silver: var(--silver);
-  --color-silver-light: var(--silver-light);
-  --color-silver-dark: var(--silver-dark);
 }
 
-/* Force light theme - no dark mode variables */
 body {
   background: #ffffff !important;
-  color: #1e293b;
+  color: #0f172a;
+  font-size: 14px;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Custom scrollbar using Tailwind-compatible colors */
-::-webkit-scrollbar {
-  width: 6px;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f8fafc; }
+::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 
-::-webkit-scrollbar-track {
-  background: #f9fafb;
-}
+/* ── Ant Design global overrides ── */
 
-::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #d1d5db;
-}
-
-/* Minimal Ant Design overrides - let Tailwind handle most styling */
-.ant-layout {
-  background: transparent !important;
-}
-
-.ant-layout-header {
-  background: #1e3a8a !important;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.ant-layout-footer {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Custom utility classes */
-.navy-bg {
-  background-color: #1e3a8a;
-}
-
-.navy-text {
-  color: #1e3a8a;
-}
-
-.silver-bg {
-  background-color: #f9fafb;
-}
-
-/* Override Ant Design card styles to use Tailwind */
+/* Cards — flat, no shadow */
 .ant-card {
-  border: 1px solid #e5e7eb !important;
-  border-radius: 0.5rem !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
 }
-
 .ant-card-head {
-  border-bottom: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e2e8f0 !important;
   background: transparent !important;
 }
 
-/* Button overrides to use Tailwind styles */
+/* Buttons */
 .ant-btn-primary {
   background-color: #1e3a8a !important;
   border-color: #1e3a8a !important;
 }
-
 .ant-btn-primary:hover {
   background-color: #1e40af !important;
   border-color: #1e40af !important;
 }
-
-/* Remove unwanted borders from Ant Design Form */
-.ant-form {
-  border: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-right: none !important;
+.ant-btn-default {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
 }
 
-.ant-form::before,
-.ant-form::after {
-  display: none !important;
-  content: none !important;
+/* Table — no outer border, subtle row hover, no zebra */
+.ant-table-wrapper .ant-table {
   border: none !important;
 }
+.ant-table-tbody > tr:hover > td {
+  background: #f8fafc !important;
+}
+.ant-table-tbody > tr:nth-child(even) > td {
+  background: transparent !important;
+}
 
+/* Inputs */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-color: #e2e8f0 !important;
+  border-radius: 6px !important;
+}
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused {
+  border-color: #1e3a8a !important;
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1) !important;
+}
+
+/* Tags — flat */
+.ant-tag {
+  background: transparent !important;
+}
+
+/* Progress — navy, no gradient */
+.ant-progress-bg {
+  background: #1e3a8a !important;
+}
+
+/* Forms — no borders */
+.ant-form,
 .ant-form-item {
   border: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
+  box-shadow: none !important;
 }
-
+.ant-form::before,
+.ant-form::after,
 .ant-form-item::before,
 .ant-form-item::after {
   display: none !important;
   content: none !important;
-  border: none !important;
 }
-
-/* Remove any potential borders from form wrapper elements */
-.ant-form-horizontal,
-.ant-form-vertical,
-.ant-form-inline {
-  border: none !important;
-}
-
-/* Ensure form items have proper spacing without borders */
 .ant-form-item:not(:last-child) {
   margin-bottom: 1.5rem;
 }
 
-/* Override any card form styling that might add borders */
-.ant-card .ant-form {
-  border: none !important;
-}
-
-.ant-card-body .ant-form {
-  border: none !important;
-}
-
-/* Custom border-none class for forms */
-.border-none,
-.border-none.ant-form {
-  border: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-.border-none::before,
-.border-none::after {
-  display: none !important;
-  content: none !important;
-  border: none !important;
-}
-
-/* Target potential wrapper elements */
-.ant-form-wrapper,
-.ant-form-container {
-  border: none !important;
-}
-
-/* Remove borders from form layout containers */
-form,
-form.ant-form,
-div[class*="ant-form"] {
-  border: none !important;
-}
-
-/* Ensure no pseudo-element borders on any form-related elements */
-*[class*="ant-form"]::before,
-*[class*="ant-form"]::after {
-  border: none !important;
-  content: none !important;
+/* Layout transparent backgrounds */
+.ant-layout {
+  background: transparent !important;
 }
