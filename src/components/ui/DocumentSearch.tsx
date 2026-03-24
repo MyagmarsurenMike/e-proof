@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Card, List, Typography, Tag, Space, message, Spin, Empty } from 'antd';
-import { SearchOutlined, FileTextOutlined, CalendarOutlined, NumberOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { Input, Button, List, Tag, message, Spin, Empty } from 'antd';
+import { SearchOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 
-const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
 
 interface Document {
@@ -129,40 +128,29 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
 
   return (
     <div className={className}>
-      <Card className="mb-6">
-        <div className="text-center mb-6">
-          <Title level={3}>Баримт бичиг хайх</Title>
-          <Paragraph className="text-gray-600">
-            Хэш код эсвэл баримт бичгийн нэрээр хайж олоорой
-          </Paragraph>
-        </div>
-        
-        <Search
-          placeholder="Хэш код эсвэл баримт бичгийн нэр оруулна уу..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          onSearch={handleSearch}
-          size="large"
-          enterButton={
-            <Button type="primary" icon={<SearchOutlined />}>
-              Хайх
-            </Button>
-          }
-          loading={loading}
-        />
-      </Card>
+      <Search
+        placeholder="Хэш код эсвэл баримт бичгийн нэр оруулна уу..."
+        value={searchValue}
+        onChange={(e) => setSearchValue(e.target.value)}
+        onSearch={handleSearch}
+        size="large"
+        enterButton={
+          <Button type="primary" icon={<SearchOutlined />}>
+            Хайх
+          </Button>
+        }
+        loading={loading}
+      />
 
       {loading && (
-        <Card>
-          <div className="text-center py-8">
-            <Spin size="large" />
-            <div className="mt-4">Хайж байна...</div>
-          </div>
-        </Card>
+        <div className="text-center py-8">
+          <Spin size="large" />
+          <div className="mt-4 text-sm text-[#64748b]">Хайж байна...</div>
+        </div>
       )}
 
       {hasSearched && !loading && (
-        <Card>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 0' }}>
           {searchResults.length > 0 ? (
             <List
               itemLayout="vertical"
@@ -191,32 +179,18 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
                   ]}
                 >
                   <List.Item.Meta
-                    avatar={<FileTextOutlined className="text-2xl text-blue-600" />}
                     title={
-                      <Space direction="vertical" size="small" className="w-full">
-                        <Text strong className="text-lg">{document.title}</Text>
-                        <Space wrap>
+                      <div>
+                        <span className="font-medium text-[#0f172a]">{document.title}</span>
+                        <div className="flex items-center gap-2 mt-1">
                           <Tag color={getStatusColor(document.status)}>
                             {getStatusText(document.status)}
                           </Tag>
-                          <Tag>{document.documentType}</Tag>
-                          <Tag icon={<CalendarOutlined />}>
+                          <span className="text-xs text-[#64748b]">
                             {new Date(document.createdAt).toLocaleDateString('mn-MN')}
-                          </Tag>
-                        </Space>
-                      </Space>
-                    }
-                    description={
-                      <Space direction="vertical" size="small" className="w-full">
-                        {document.description && (
-                          <Text type="secondary">{document.description}</Text>
-                        )}
-                        <Space direction="vertical" size="small">
-                          <Text><strong>Файл:</strong> {document.fileName} ({(document.fileSize / 1024 / 1024).toFixed(2)} MB)</Text>
-                          <Text><strong>Хэш:</strong> <code className="bg-gray-100 px-1 rounded">{document.fileHash}</code></Text>
-                          <Text><strong>Үүсгэсэн:</strong> {document.user.name || document.user.email}</Text>
-                        </Space>
-                      </Space>
+                          </span>
+                        </div>
+                      </div>
                     }
                   />
                 </List.Item>
@@ -228,7 +202,7 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           )}
-        </Card>
+        </div>
       )}
     </div>
   );
