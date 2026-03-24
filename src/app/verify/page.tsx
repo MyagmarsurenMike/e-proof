@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Layout, Steps, Button, Card, Typography, Row, Col, Alert } from 'antd';
+import { Button, Card, Typography, Spin } from 'antd';
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
-import { Header } from '@/components/ui/Header';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/ui/Footer';
 import { UploadForm } from '@/components/ui/UploadForm';
 import { VerificationResult } from '@/components/ui/VerificationResult';
 import Link from 'next/link';
 
-const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 
 interface VerificationData {
@@ -30,7 +29,7 @@ export default function VerifyPage() {
   const handleVerificationStart = (data: any) => {
     setVerificationData(data);
     setCurrentStep(1);
-    
+
     // Simulate the verification process
     setTimeout(() => {
       setVerificationData((prev: VerificationData | null) => ({
@@ -65,129 +64,42 @@ export default function VerifyPage() {
   ];
 
   return (
-    <Layout className="min-h-screen">
-      <Header />
-      
-      <Content className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <Link href="/dashboard">
-                <Button icon={<ArrowLeftOutlined />} type="text">
-                  Хяналтын самбарт буцах
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button type="link">
-                  Нүүр
-                </Button>
-              </Link>
-            </div>
-            
-            <div className="text-center mb-8">
-              <Title level={1} className="mb-4">
-                Баримт бичиг баталгаажуулалт
-              </Title>
-              <Paragraph className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                Баримт бичгээ блокчэйн технологиор аюулгүй болгоорой. Гэрээ, гэрчилгээ эсвэл чухал 
-                баримт бичгүүдээ оруулж жинхэнэ байдлын өөрчлөгдөшгүй нотолгоо үүсгээрэй.
-              </Paragraph>
-            </div>
+    <div className="min-h-screen flex flex-col bg-white">
+      <PublicNav />
 
-            {/* Progress Steps */}
-            <Card className="mb-8 flex space-between items-center">
-              <Steps
-                current={currentStep}
-                items={steps}
-                className="max-w-2xl mx-auto"
-              />
-            </Card>
-          </div>
+      <main className="flex-1 py-12 px-6">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold text-[#0f172a] mb-2 text-center">
+            Баримт бичиг баталгаажуулалт
+          </h1>
+          <p className="text-sm text-[#64748b] text-center mb-8">
+            Баримт бичгийг блокчэйн технологиор баталгаажуулна уу
+          </p>
 
-          {/* How It Works Section */}
+          {/* Upload step */}
           {currentStep === 0 && (
-            <Row gutter={[24, 24]} className="mb-12">
-              <Col xs={24} lg={8}>
-                <Card className="h-full text-center">
-                  <div className="text-4xl mb-4">📄</div>
-                  <Title level={4}>1. Баримт бичиг оруулах</Title>
-                  <Paragraph className="text-gray-600 dark:text-gray-400">
-                    Баримт бичгээ аюулгүйгээр оруулна уу. Бид PDF, Word баримт бичиг болон зургийг дэмждэг.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} lg={8}>
-                <Card className="h-full text-center">
-                  <div className="text-4xl mb-4">🔐</div>
-                  <Title level={4}>2. Хэш үүсгэх</Title>
-                  <Paragraph className="text-gray-600 dark:text-gray-400">
-                    Бид таны баримт бичгийн өвөрмөц криптограф хурууны хээг блокчэйн хадгалалтад зориулж үүсгэнэ.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} lg={8}>
-                <Card className="h-full text-center">
-                  <div className="text-4xl mb-4">⛓️</div>
-                  <Title level={4}>3. Блокчэйн хадгалалт</Title>
-                  <Paragraph className="text-gray-600 dark:text-gray-400">
-                    Хэш блокчэйнд байнга бүртгэгдэж, өөрчлөгдөшгүй нотолгоог бүрдүүлнэ.
-                  </Paragraph>
-                </Card>
-              </Col>
-            </Row>
+            <UploadForm onVerificationStart={handleVerificationStart} />
           )}
 
-          {/* Main Content Based on Step */}
-          {currentStep === 0 && (
-            <section>
-              <UploadForm onVerificationStart={handleVerificationStart} />
-            </section>
-          )}
-
-          {(currentStep === 1 || currentStep === 2) && (
-            <section>
-              <VerificationResult 
-                data={verificationData} 
-                onNewVerification={handleNewVerification}
-              />
-            </section>
-          )}
-
-          {/* Security Information */}
-          {currentStep === 0 && (
-            <div className="mt-12">
-              <Alert
-                message="Таны нууцлал хамгаалагдсан"
-                description={
-                  <div className="space-y-2">
-                    <p>• Таны эх баримт бичиг манай серверт эсвэл блокчэйнд хэзээ ч хадгалагддаггүй</p>
-                    <p>• Зөвхөн криптограф хэш (хурууны хээ) баталгаажуулалтын зориулалтаар бүртгэгддэг</p>
-                    <p>• Бүх файл оруулах ажлыг дотооддоо боловсруулж, аюулгүйгээр дамжуулдаг</p>
-                    <p>• Блокчэйн бичлэг байнгын бөгөөд хуурамч байдлаас хамгаалагдсан</p>
-                  </div>
-                }
-                type="info"
-                showIcon
-              />
+          {/* Processing */}
+          {currentStep === 1 && (
+            <div className="text-center py-12">
+              <Spin size="large" />
+              <p className="mt-4 text-sm text-[#64748b]">Боловсруулж байна...</p>
             </div>
           )}
 
-          {/* Navigation Buttons */}
-          {currentStep > 0 && currentStep < 2 && (
-            <div className="flex justify-center mt-8">
-              <Button 
-                onClick={handleNewVerification}
-                size="large"
-              >
-                Шинэ баталгаажуулалт эхлүүлэх
-              </Button>
-            </div>
+          {/* Result */}
+          {currentStep === 2 && (
+            <VerificationResult
+              data={verificationData}
+              onNewVerification={handleNewVerification}
+            />
           )}
         </div>
-      </Content>
-      
+      </main>
+
       <Footer />
-    </Layout>
+    </div>
   );
 }
