@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Card, Typography, Tag, Space, Button, Spin, Alert } from 'antd'
-import { DownloadOutlined, FileTextOutlined, CalendarOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
-import { Header } from '@/components/ui/Header'
-import { Footer } from '@/components/ui/Footer'
+import { Typography, Tag, Button, Spin, Alert, Descriptions } from 'antd'
+import { DownloadOutlined, FileTextOutlined } from '@ant-design/icons'
+import { AppShell } from '@/components/layout/AppShell'
 
-const { Title, Text, Paragraph } = Typography
+const { Text, Paragraph } = Typography
 
 interface Document {
   id: string
@@ -42,7 +41,7 @@ export default function DocumentPage() {
     const fetchDocument = async () => {
       try {
         const response = await fetch(`/api/documents/${params.id}`)
-        
+
         if (!response.ok) {
           if (response.status === 404) {
             setError('Баримт бичиг олдсонгүй')
@@ -108,201 +107,117 @@ export default function DocumentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Spin size="large" />
-            <p className="mt-4 text-gray-600">Баримт бичгийг ачаалж байна...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
+      <AppShell>
+        <div className="flex items-center justify-center h-64">
+          <Spin size="large" />
+        </div>
+      </AppShell>
+    );
   }
 
-  if (error) {
+  if (error || !document) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Alert
-            message="Алдаа гарлаа"
-            description={error}
-            type="error"
-            showIcon
-          />
-        </main>
-        <Footer />
-      </div>
-    )
-  }
-
-  if (!document) {
-    return (
-      <div className="min-h-screen flex flex-col bg-white">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <p className="text-gray-600">Баримт бичиг олдсонгүй</p>
-        </main>
-        <Footer />
-      </div>
-    )
+      <AppShell>
+        <div className="px-8 py-6">
+          <Alert message="Алдаа гарлаа" description={error || 'Баримт бичиг олдсонгүй'} type="error" showIcon />
+        </div>
+      </AppShell>
+    );
   }
 
   const isImage = document.mimeType.startsWith('image/')
   const isPDF = document.mimeType === 'application/pdf'
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
-      
-      <main className="flex-1 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Document Header */}
-          <Card className="mb-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <Title level={2} className="mb-2">
-                  <FileTextOutlined className="mr-2" />
-                  {document.title}
-                </Title>
-                <Space wrap>
-                  <Tag color={getStatusColor(document.status)}>
-                    {getStatusText(document.status)}
-                  </Tag>
-                  <Tag>{document.documentType}</Tag>
-                  <Tag icon={<CalendarOutlined />}>
-                    {new Date(document.createdAt).toLocaleDateString('mn-MN')}
-                  </Tag>
-                </Space>
-              </div>
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  onClick={downloadFile}
-                  size="large"
-                >
-                  Файл татах
-                </Button>
-                <Button
-                  icon={<SafetyCertificateOutlined />}
-                  onClick={downloadHashFile}
-                  size="large"
-                  title="Блокчэйн хэш файл татах"
-                >
-                  Хэш файл
-                </Button>
-              </Space>
-            </div>
-            
-            {document.description && (
-              <Paragraph className="text-gray-600 mb-4">
-                {document.description}
-              </Paragraph>
-            )}
+    <AppShell>
+      <div className="px-8 py-6">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-[#0f172a]">{document.title}</h2>
+          <Button type="primary" icon={<DownloadOutlined />} onClick={downloadFile}>
+            Татах
+          </Button>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <Text strong>Файлын нэр: </Text>
-                <Text>{document.fileName}</Text>
-              </div>
-              <div>
-                <Text strong>Хэмжээ: </Text>
-                <Text>{(document.fileSize / 1024 / 1024).toFixed(2)} MB</Text>
-              </div>
-              <div>
-                <Text strong>Файлын төрөл: </Text>
-                <Text>{document.mimeType}</Text>
-              </div>
-              <div>
-                <Text strong>Үүсгэсэн: </Text>
-                <Text>{document.user.name || document.user.email}</Text>
-              </div>
-              <div className="md:col-span-2">
-                <Text strong>Хэш: </Text>
-                <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all">
+        {/* Two-column layout */}
+        <div className="flex gap-6">
+          {/* Left: metadata (60%) */}
+          <div style={{ flex: '0 0 60%' }}>
+            <Descriptions
+              column={1}
+              size="middle"
+              bordered={false}
+              style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+            >
+              <Descriptions.Item label="Статус">
+                <Tag color={getStatusColor(document.status)}>
+                  {getStatusText(document.status)}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Төрөл">{document.documentType}</Descriptions.Item>
+              <Descriptions.Item label="Огноо">
+                {new Date(document.createdAt).toLocaleDateString('mn-MN')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Файлын нэр">{document.fileName}</Descriptions.Item>
+              <Descriptions.Item label="Хэмжээ">
+                {(document.fileSize / 1024 / 1024).toFixed(2)} MB
+              </Descriptions.Item>
+              <Descriptions.Item label="Хэш">
+                <code className="text-xs bg-[#f8fafc] px-2 py-1 rounded break-all">
                   {document.fileHash}
                 </code>
-              </div>
-            </div>
+              </Descriptions.Item>
+            </Descriptions>
 
-            {document.status === 'VERIFIED' && document.blockchainHash && (
-              <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center mb-2">
-                  <SafetyCertificateOutlined className="text-green-600 mr-2" />
-                  <Text strong className="text-green-800">Блокчэйнд баталгаажсан</Text>
-                </div>
-                <div className="space-y-1 text-sm">
-                  {document.transactionId && (
-                    <div>
-                      <Text strong>Гүйлгээний ID: </Text>
-                      <code className="bg-white px-1 rounded text-xs">
-                        {document.transactionId}
-                      </code>
-                    </div>
-                  )}
-                  {document.blockNumber && (
-                    <div>
-                      <Text strong>Блокийн дугаар: </Text>
-                      <Text>{document.blockNumber}</Text>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Blockchain section — only if blockchainHash exists */}
+            {document.blockchainHash && (
+              <Descriptions
+                column={1}
+                size="middle"
+                bordered={false}
+                className="mt-4"
+                style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+              >
+                <Descriptions.Item label="Гүйлгээний ID">
+                  <code className="text-xs break-all">{document.transactionId}</code>
+                </Descriptions.Item>
+                {document.blockNumber && (
+                  <Descriptions.Item label="Блокийн дугаар">{document.blockNumber}</Descriptions.Item>
+                )}
+              </Descriptions>
             )}
-          </Card>
+          </div>
 
-          {/* File Viewer */}
-          <Card title="Баримт бичиг" className="mb-6">
-            <div className="text-center">
+          {/* Right: file preview (40%) */}
+          <div style={{ flex: '0 0 40%' }}>
+            <div
+              style={{ border: '1px solid #e2e8f0', borderRadius: 8, minHeight: 300 }}
+              className="flex items-center justify-center bg-[#f8fafc]"
+            >
               {isImage ? (
                 <img
                   src={`/api/documents/${document.id}/file`}
                   alt={document.fileName}
-                  className="max-w-full h-auto mx-auto rounded-lg shadow-lg"
-                  style={{ maxHeight: '600px' }}
+                  className="max-w-full max-h-80 rounded"
                 />
               ) : isPDF ? (
                 <iframe
                   src={`/api/documents/${document.id}/file`}
                   width="100%"
-                  height="600px"
-                  className="border rounded-lg"
+                  height="300px"
+                  className="rounded"
                   title={document.fileName}
                 />
               ) : (
-                <div className="py-12">
-                  <FileTextOutlined className="text-6xl text-gray-400 mb-4" />
-                  <Paragraph className="text-gray-600">
-                    Энэ файлын төрлийг шууд үзэх боломжгүй. Файлыг татаж авна уу.
-                  </Paragraph>
-                  <Space>
-                    <Button
-                      type="primary"
-                      icon={<DownloadOutlined />}
-                      onClick={downloadFile}
-                      size="large"
-                    >
-                      Эх файл татах
-                    </Button>
-                    <Button
-                      icon={<SafetyCertificateOutlined />}
-                      onClick={downloadHashFile}
-                      size="large"
-                    >
-                      Хэш файл татах
-                    </Button>
-                  </Space>
+                <div className="text-center py-12">
+                  <FileTextOutlined className="text-4xl text-[#64748b] mb-3" />
+                  <p className="text-sm text-[#64748b]">Урдчилан харах боломжгүй</p>
                 </div>
               )}
             </div>
-          </Card>
+          </div>
         </div>
-      </main>
-      
-      <Footer />
-    </div>
+      </div>
+    </AppShell>
   )
 }
