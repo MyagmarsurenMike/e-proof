@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Form, Input, Button, Alert, Typography, Divider, Select } from 'antd';
+import { Card, Form, Input, Button, Alert, Divider, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, BankOutlined } from '@ant-design/icons';
-import { Header } from '@/components/ui/Header';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/ui/Footer';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const { Title, Text } = Typography;
 const { Option } = Select;
 
 export default function SignUp() {
@@ -52,35 +51,20 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      
-      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <Title level={2} className="mb-2">
-              Бүртгүүлэх
-            </Title>
-            <Text className="text-gray-600">
-              Э-Нотолгоо системд шинэ бүртгэл үүсгээрэй
-            </Text>
+      <PublicNav />
+
+      <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
+        <div style={{ width: '100%', maxWidth: 440 }}>
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-[#0f172a] mb-1">Бүртгүүлэх</h1>
+            <p className="text-sm text-[#64748b]">Э-Нотолгоо системд шинэ бүртгэл үүсгээрэй</p>
           </div>
 
-          <Card className="shadow-lg border-0">
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleSubmit}
-              size="large"
-            >
+          <Card style={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+            <Form form={form} layout="vertical" onFinish={handleSubmit} size="large">
               {error && (
-                <Alert
-                  message={error}
-                  type="error"
-                  showIcon
-                  className="mb-4"
-                />
+                <Alert message={error} type="error" showIcon className="mb-4" />
               )}
-
               {success && (
                 <Alert
                   message="Бүртгэл амжилттай үүсгэгдлээ!"
@@ -96,13 +80,10 @@ export default function SignUp() {
                 label="Бүтэн нэр"
                 rules={[
                   { required: true, message: 'Нэрээ оруулна уу' },
-                  { min: 2, message: 'Нэр хамгийн багадаа 2 тэмдэгт байх ёстой' }
+                  { min: 2, message: 'Нэр хамгийн багадаа 2 тэмдэгт байх ёстой' },
                 ]}
               >
-                <Input
-                  prefix={<UserOutlined />}
-                  placeholder="Таны бүтэн нэр"
-                />
+                <Input prefix={<UserOutlined />} placeholder="Таны бүтэн нэр" />
               </Form.Item>
 
               <Form.Item
@@ -110,29 +91,17 @@ export default function SignUp() {
                 label="Имэйл хаяг"
                 rules={[
                   { required: true, message: 'Имэйл хаягаа оруулна уу' },
-                  { type: 'email', message: 'Зөв имэйл хаяг оруулна уу' }
+                  { type: 'email', message: 'Зөв имэйл хаяг оруулна уу' },
                 ]}
               >
-                <Input
-                  prefix={<MailOutlined />}
-                  placeholder="your@email.com"
-                />
+                <Input prefix={<MailOutlined />} placeholder="your@email.com" />
               </Form.Item>
 
-              <Form.Item
-                name="organization"
-                label="Байгууллага (Заавал биш)"
-              >
-                <Input
-                  prefix={<BankOutlined />}
-                  placeholder="Компани эсвэл байгууллагын нэр"
-                />
+              <Form.Item name="organization" label="Байгууллага (Заавал биш)">
+                <Input prefix={<BankOutlined />} placeholder="Компани эсвэл байгууллагын нэр" />
               </Form.Item>
 
-              <Form.Item
-                name="role"
-                label="Албан тушаал (Заавал биш)"
-              >
+              <Form.Item name="role" label="Албан тушаал (Заавал биш)">
                 <Select placeholder="Албан тушаалаа сонгоно уу">
                   <Option value="manager">Удирдлага</Option>
                   <Option value="legal">Хуулийн зөвлөх</Option>
@@ -149,13 +118,10 @@ export default function SignUp() {
                 label="Нууц үг"
                 rules={[
                   { required: true, message: 'Нууц үгээ оруулна уу' },
-                  { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой' }
+                  { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой' },
                 ]}
               >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="Нууц үгээ оруулна уу"
-                />
+                <Input.Password prefix={<LockOutlined />} placeholder="Нууц үгээ оруулна уу" />
               </Form.Item>
 
               <Form.Item
@@ -174,10 +140,7 @@ export default function SignUp() {
                   }),
                 ]}
               >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="Нууц үгээ дахин оруулна уу"
-                />
+                <Input.Password prefix={<LockOutlined />} placeholder="Нууц үгээ дахин оруулна уу" />
               </Form.Item>
 
               <Form.Item>
@@ -186,7 +149,7 @@ export default function SignUp() {
                   htmlType="submit"
                   loading={loading}
                   disabled={success}
-                  className="w-full h-12"
+                  className="w-full h-10"
                 >
                   Бүртгүүлэх
                 </Button>
@@ -196,30 +159,27 @@ export default function SignUp() {
             <Divider plain>Эсвэл</Divider>
 
             <div className="text-center">
-              <Text className="text-gray-600">
+              <span className="text-sm text-[#64748b]">
                 Аль хэдийн бүртгэлтэй юу?{' '}
-                <Link href="/auth/signin" className="text-blue-600 hover:text-blue-500">
+                <Link href="/auth/signin" className="text-[#1e3a8a]">
                   Нэвтрэх
                 </Link>
-              </Text>
+              </span>
             </div>
           </Card>
 
-          <div className="text-center">
-            <Text className="text-gray-500 text-sm">
+          <div className="text-center mt-4">
+            <span className="text-xs text-[#64748b]">
               Бүртгүүлэх нь манай{' '}
-              <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-                Үйлчилгээний нөхцөл
-              </Link>{' '}
-              болон{' '}
-              <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
-                Нууцлалын бодлого
-              </Link>-г хүлээн зөвшөөрч байна гэсэн үг юм.
-            </Text>
+              <Link href="/terms" className="text-[#1e3a8a]">Үйлчилгээний нөхцөл</Link>
+              {' '}болон{' '}
+              <Link href="/privacy" className="text-[#1e3a8a]">Нууцлалын бодлого</Link>-г
+              хүлээн зөвшөөрч байна гэсэн үг юм.
+            </span>
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
