@@ -38,7 +38,7 @@ export function PublicNav() {
         ) : (
           <>
             <Link href="/auth/signin">
-              <Button size="small">Нэвтрэх</Button>
+              <Button size="small" ghost>Нэвтрэх</Button>
             </Link>
             <Link href="/verify">
               <Button type="primary" size="small">
