@@ -1,21 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Result, Descriptions, Timeline, Alert, Button, Typography, Tag, Spin } from 'antd';
-import { 
-  CheckCircleOutlined, 
-  ClockCircleOutlined, 
+import { Descriptions, Timeline, Button, Typography, Tag, Spin } from 'antd';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
   ExclamationCircleOutlined,
-  SafetyCertificateOutlined,
   ShareAltOutlined,
   CopyOutlined,
   FileTextOutlined
 } from '@ant-design/icons';
-import { Header } from '@/components/ui/Header';
+import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/ui/Footer';
 import { DocumentType, VerificationStatus } from '@/types/enums';
 
-const { Title, Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 interface DocumentData {
   id: string;
@@ -54,7 +53,7 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
     try {
       setLoading(true);
       const response = await fetch(`/api/documents/${params.id}`);
-      
+
       if (!response.ok) {
         throw new Error('Баримт бичиг олдсонгүй');
       }
@@ -97,19 +96,6 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
     return typeMap[type] || type;
   };
 
-  const getStatusIcon = (status: VerificationStatus) => {
-    switch (status) {
-      case VerificationStatus.VERIFIED:
-        return <CheckCircleOutlined className="text-green-500 text-6xl" />;
-      case VerificationStatus.PROCESSING:
-        return <ClockCircleOutlined className="text-orange-500 text-6xl" />;
-      case VerificationStatus.FAILED:
-        return <ExclamationCircleOutlined className="text-red-500 text-6xl" />;
-      default:
-        return <ClockCircleOutlined className="text-gray-400 text-6xl" />;
-    }
-  };
-
   const getStatusMessage = (status: VerificationStatus) => {
     switch (status) {
       case VerificationStatus.VERIFIED:
@@ -139,10 +125,23 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
     }
   };
 
+  const getStatusTag = (status: VerificationStatus) => {
+    switch (status) {
+      case VerificationStatus.VERIFIED:
+        return <Tag color="success">Баталгаажсан</Tag>;
+      case VerificationStatus.PROCESSING:
+        return <Tag color="processing">Боловсруулж байна</Tag>;
+      case VerificationStatus.FAILED:
+        return <Tag color="error">Амжилтгүй</Tag>;
+      default:
+        return <Tag color="warning">Хүлээгдэж байна</Tag>;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header />
+        <PublicNav />
         <main className="flex-1 flex items-center justify-center">
           <Spin size="large" />
         </main>
@@ -154,18 +153,13 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
   if (error || !document) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header />
-        <main className="flex-1 flex items-center justify-center py-12">
-          <Result
-            status="404"
-            title="Баримт бичиг олдсонгүй"
-            subTitle={error || 'Хүссэн баримт бичиг олдсонгүй. Холбоос зөв эсэхээ шалгана уу.'}
-            extra={
-              <Button type="primary" href="/">
-                Нүүр хуудас руу буцах
-              </Button>
-            }
-          />
+        <PublicNav />
+        <main className="flex-1 flex items-center justify-center py-12 px-6">
+          <div className="text-center">
+            <p className="text-[#0f172a] font-semibold mb-2">Баримт бичиг олдсонгүй</p>
+            <p className="text-sm text-[#64748b] mb-6">{error || 'Холбоос зөв эсэхээ шалгана уу.'}</p>
+            <Button type="primary" href="/">Нүүр хуудас руу буцах</Button>
+          </div>
         </main>
         <Footer />
       </div>
@@ -176,175 +170,137 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      
-      <main className="flex-1 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Main Status Card */}
-          <Card className="shadow-lg border-0 mb-8">
-            <Result
-              icon={getStatusIcon(document.status)}
-              title={statusInfo.title}
-              subTitle={statusInfo.description}
-            />
-          </Card>
+      <PublicNav />
 
-          {/* Document Information */}
-          <Card title="Баримт бичгийн мэдээлэл" className="shadow-lg border-0 mb-8">
-            <Descriptions column={1} size="middle">
-              <Descriptions.Item label="Гарчиг">
-                <Text strong>{document.title}</Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Төрөл">
-                <Tag color="blue" icon={<FileTextOutlined />}>
-                  {getDocumentTypeLabel(document.documentType)}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Оруулсан огноо">
-                {new Date(document.createdAt).toLocaleDateString('mn-MN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+      <main className="flex-1 py-12 px-6">
+        <div className="max-w-2xl mx-auto">
+          {/* Status */}
+          <div className="text-center mb-8">
+            {getStatusTag(document.status)}
+            <h1 className="text-2xl font-bold text-[#0f172a] mt-3 mb-1">
+              {statusInfo.title}
+            </h1>
+            <p className="text-sm text-[#64748b]">{statusInfo.description}</p>
+          </div>
+
+          {/* Document info */}
+          <Descriptions
+            column={1}
+            size="middle"
+            bordered={false}
+            className="mb-4"
+            style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+          >
+            <Descriptions.Item label="Гарчиг">
+              <Text strong>{document.title}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Төрөл">
+              <Tag>{getDocumentTypeLabel(document.documentType)}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Оруулсан огноо">
+              {new Date(document.createdAt).toLocaleDateString('mn-MN', {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit',
+              })}
+            </Descriptions.Item>
+            {document.verifiedAt && (
+              <Descriptions.Item label="Баталгаажсан огноо">
+                {new Date(document.verifiedAt).toLocaleDateString('mn-MN', {
+                  year: 'numeric', month: 'long', day: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
                 })}
               </Descriptions.Item>
-              {document.verifiedAt && (
-                <Descriptions.Item label="Баталгаажсан огноо">
-                  {new Date(document.verifiedAt).toLocaleDateString('mn-MN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </Descriptions.Item>
-              )}
-              {document.user.name && (
-                <Descriptions.Item label="Оруулсан хүн">
-                  {document.user.name}
-                  {document.user.organization && ` (${document.user.organization})`}
-                </Descriptions.Item>
-              )}
-              <Descriptions.Item label="Статус">
-                <Tag 
-                  color={document.status === VerificationStatus.VERIFIED ? 'success' : 'processing'}
-                  icon={document.status === VerificationStatus.VERIFIED ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
-                >
-                  {statusInfo.title.toUpperCase()}
-                </Tag>
+            )}
+            {document.user.name && (
+              <Descriptions.Item label="Оруулсан хүн">
+                {document.user.name}
+                {document.user.organization && ` (${document.user.organization})`}
               </Descriptions.Item>
-            </Descriptions>
-          </Card>
+            )}
+          </Descriptions>
 
-          {/* Blockchain Information */}
-          {document.status === VerificationStatus.VERIFIED && document.fileHash && (
-            <Card title="Блокчэйн баталгаажуулалт" className="shadow-lg border-0 mb-8">
-              <Alert
-                message="Блокчэйн баталгаажуулалт"
-                description="Энэ баримт бичиг блокчэйнд баталгаажиж, хуурамч байдлаас хамгаалагдсан."
-                type="success"
-                showIcon
-                icon={<SafetyCertificateOutlined />}
-                className="mb-6"
-              />
-              
-              <Descriptions column={1} size="middle">
-                <Descriptions.Item label="Баримт бичгийн хэш">
-                  <div className="flex items-center space-x-2">
-                    <Text code className="text-sm break-all">
-                      {document.fileHash}
-                    </Text>
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<CopyOutlined />}
-                      onClick={() => copyToClipboard(document.fileHash)}
-                    />
+          {/* Blockchain info — only if fileHash exists */}
+          {document.fileHash && (
+            <Descriptions
+              column={1}
+              size="middle"
+              bordered={false}
+              className="mb-4"
+              style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+            >
+              <Descriptions.Item label="Баримт бичгийн хэш">
+                <div className="flex items-center gap-2">
+                  <Text code className="text-xs break-all">{document.fileHash}</Text>
+                  <Button type="text" size="small" icon={<CopyOutlined />}
+                    onClick={() => copyToClipboard(document.fileHash)} />
+                </div>
+              </Descriptions.Item>
+              {document.transactionId && (
+                <Descriptions.Item label="Гүйлгээний ID">
+                  <div className="flex items-center gap-2">
+                    <Text code className="text-xs break-all">{document.transactionId}</Text>
+                    <Button type="text" size="small" icon={<CopyOutlined />}
+                      onClick={() => copyToClipboard(document.transactionId!)} />
                   </div>
                 </Descriptions.Item>
-                {document.transactionId && (
-                  <Descriptions.Item label="Гүйлгээний ID">
-                    <div className="flex items-center space-x-2">
-                      <Text code className="text-sm break-all">
-                        {document.transactionId}
-                      </Text>
-                      <Button 
-                        type="text" 
-                        size="small" 
-                        icon={<CopyOutlined />}
-                        onClick={() => copyToClipboard(document.transactionId!)}
-                      />
-                    </div>
-                  </Descriptions.Item>
-                )}
-                {document.blockNumber && (
-                  <Descriptions.Item label="Блокийн дугаар">
-                    <Text code>{document.blockNumber}</Text>
-                  </Descriptions.Item>
-                )}
-                {document.networkId && (
-                  <Descriptions.Item label="Сүлжээ">
-                    <Tag color="purple">{document.networkId.toUpperCase()}</Tag>
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
-            </Card>
+              )}
+              {document.blockNumber && (
+                <Descriptions.Item label="Блокийн дугаар">
+                  <Text code>{document.blockNumber}</Text>
+                </Descriptions.Item>
+              )}
+            </Descriptions>
           )}
 
-          {/* Verification Timeline */}
+          {/* Timeline */}
           {document.verificationSteps && document.verificationSteps.length > 0 && (
-            <Card title="Баталгаажуулалтын явц" className="shadow-lg border-0 mb-8">
+            <div
+              style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+              className="mb-4"
+            >
+              <p className="text-sm font-medium text-[#0f172a] mb-4">Баталгаажуулалтын явц</p>
               <Timeline
-                items={document.verificationSteps.map((step, index) => ({
-                  color: step.status === 'COMPLETED' ? 'green' : step.status === 'FAILED' ? 'red' : 'blue',
+                items={document.verificationSteps.map((step) => ({
+                  color: step.status === 'COMPLETED' ? 'green' : step.status === 'FAILED' ? 'red' : 'gray',
                   children: (
                     <div>
-                      <Text strong>{step.message}</Text>
-                      <div className="text-sm text-gray-500 mt-1">
+                      <Text className="text-sm">{step.message}</Text>
+                      <div className="text-xs text-[#64748b] mt-0.5">
                         {new Date(step.startedAt).toLocaleString('mn-MN')}
                       </div>
                     </div>
                   ),
                 }))}
               />
-            </Card>
+            </div>
           )}
 
-          {/* Share Options */}
-          <Card title="Хуваалцах" className="shadow-lg border-0">
-            <div className="space-y-4">
-              <Paragraph className="text-gray-600">
-                Энэ баталгаажуулалтын холбоосыг бусадтай хуваалцаж, баримт бичгийн жинхэнэ байдлыг нотлох боломжтой.
-              </Paragraph>
-              
-              <div className="flex items-center space-x-4">
-                <Button
-                  icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(window.location.href)}
-                >
-                  Холбоос хуулах
-                </Button>
-                <Button
-                  icon={<ShareAltOutlined />}
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: document.title,
-                        text: 'Баримт бичгийн блокчэйн баталгаажуулалт',
-                        url: window.location.href,
-                      });
-                    }
-                  }}
-                >
-                  Хуваалцах
-                </Button>
-              </div>
+          {/* Share */}
+          <div
+            style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+          >
+            <p className="text-sm text-[#64748b] mb-3">
+              Холбоосыг хуулж баримт бичгийн жинхэнэ байдлыг нотлоорой.
+            </p>
+            <div className="flex gap-3">
+              <Button icon={<CopyOutlined />} onClick={() => copyToClipboard(window.location.href)}>
+                Холбоос хуулах
+              </Button>
+              <Button
+                icon={<ShareAltOutlined />}
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: document.title, url: window.location.href });
+                  }
+                }}
+              >
+                Хуваалцах
+              </Button>
             </div>
-          </Card>
+          </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
