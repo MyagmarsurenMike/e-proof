@@ -82,8 +82,8 @@ body {
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1) !important;
 }
 
-/* Tags — flat */
-.ant-tag {
+/* Tags — flat for default/uncolored tags only */
+.ant-tag:not([class*="ant-tag-"]) {
   background: transparent !important;
 }
 
@@ -97,13 +97,6 @@ body {
 .ant-form-item {
   border: none !important;
   box-shadow: none !important;
-}
-.ant-form::before,
-.ant-form::after,
-.ant-form-item::before,
-.ant-form-item::after {
-  display: none !important;
-  content: none !important;
 }
 .ant-form-item:not(:last-child) {
   margin-bottom: 1.5rem;
