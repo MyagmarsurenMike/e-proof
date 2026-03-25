@@ -4,8 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { SafetyCertificateOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Button } from 'antd';
+import { SafetyCertificateOutlined, BellOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Button, Tooltip } from 'antd';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -65,14 +65,51 @@ export function AppShell({ children }: AppShellProps) {
         </nav>
 
         {/* User section */}
-        <div
-          style={{ borderTop: '1px solid #e2e8f0' }}
-          className="px-4 py-4"
-        >
+        <div style={{ borderTop: '1px solid #e2e8f0' }} className="px-4 py-4">
+          {/* Icon row */}
+          <div className="flex items-center gap-3 mb-4">
+            {/* Bell with badge */}
+            <Tooltip title="Мэдэгдэл">
+              <div
+                style={{ position: 'relative', cursor: 'pointer', color: '#64748b', fontSize: 18 }}
+                className="hover:text-[#0f172a] transition-colors"
+              >
+                <BellOutlined />
+                <span style={{
+                  position: 'absolute', top: -3, right: -3,
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: '#1e3a8a', border: '1.5px solid #f8fafc',
+                }} />
+              </div>
+            </Tooltip>
+
+            {/* Settings */}
+            <Tooltip title="Тохиргоо">
+              <div
+                style={{ cursor: 'pointer', color: '#64748b', fontSize: 18 }}
+                className="hover:text-[#0f172a] transition-colors"
+              >
+                <SettingOutlined />
+              </div>
+            </Tooltip>
+
+            {/* Avatar */}
+            <div
+              style={{
+                marginLeft: 'auto',
+                width: 32, height: 32, borderRadius: '50%',
+                background: '#1e3a8a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#ffffff', fontSize: 13, fontWeight: 600, flexShrink: 0,
+              }}
+            >
+              {session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+          </div>
+
+          {/* Email + sign out */}
           {session?.user?.email && (
-            <p className="text-xs text-[#64748b] mb-3 truncate">
-              {session.user.email}
-            </p>
+            <p className="text-xs text-[#64748b] mb-3 truncate">{session.user.email}</p>
           )}
           <Button
             size="small"
