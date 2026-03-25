@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, List, Tag, message, Spin, Empty } from 'antd';
-import { SearchOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { Input, Button, Tag, message, Spin } from 'antd';
+import { SearchOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 
@@ -63,45 +63,12 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
       } else {
         message.success(`${result.documents.length} баримт бичиг олдлоо`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Search error:', error);
-      message.error(error.message || 'Хайлт хийхэд алдаа гарлаа');
+      message.error(error instanceof Error ? error.message : 'Хайлт хийхэд алдаа гарлаа');
       setSearchResults([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const downloadFile = (doc: Document) => {
-    if (!doc.fileContent) {
-      message.error('Файлын агуулга олдсонгүй');
-      return;
-    }
-
-    try {
-      // Convert base64 back to file
-      const byteCharacters = atob(doc.fileContent);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: doc.mimeType });
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a');
-      link.href = url;
-      link.download = doc.fileName;
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      message.success('Файл татагдлаа');
-    } catch (error) {
-      console.error('Download error:', error);
-      message.error('Файл татахад алдаа гарлаа');
     }
   };
 
@@ -149,57 +116,65 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
       )}
 
       {hasSearched && !loading && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 0' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, marginTop: 12, overflow: 'hidden' }}>
           {searchResults.length > 0 ? (
-            <List
-              itemLayout="vertical"
-              dataSource={searchResults}
-              renderItem={(document) => (
-                <List.Item
-                  key={document.id}
-                  actions={[
-                    <Button
-                      key="view"
-                      type="text"
-                      icon={<EyeOutlined />}
-                      onClick={() => window.open(`/documents/${document.id}`, '_blank')}
-                    >
-                      Үзэх
-                    </Button>,
-                    <Button
-                      key="download"
-                      type="text"
-                      icon={<DownloadOutlined />}
-                      onClick={() => downloadFile(document)}
-                      disabled={!document.fileContent}
-                    >
-                      Татах
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    title={
-                      <div>
-                        <span className="font-medium text-[#0f172a]">{document.title}</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Tag color={getStatusColor(document.status)}>
-                            {getStatusText(document.status)}
-                          </Tag>
-                          <span className="text-xs text-[#64748b]">
-                            {new Date(document.createdAt).toLocaleDateString('mn-MN')}
-                          </span>
-                        </div>
-                      </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
+            searchResults.map((doc, i) => (
+              <div
+                key={doc.id}
+                style={{
+                  borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
+                  padding: '14px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                {/* Icon */}
+                <div style={{
+                  width: 36, height: 36, borderRadius: 6,
+                  background: '#f8fafc', border: '1px solid #e2e8f0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, color: '#64748b',
+                }}>
+                  <FileTextOutlined />
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 500, color: '#0f172a', fontSize: 14, marginBottom: 4 }}>
+                    {doc.title}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <Tag color={getStatusColor(doc.status)} style={{ margin: 0 }}>
+                      {getStatusText(doc.status)}
+                    </Tag>
+                    <span style={{ fontSize: 12, color: '#64748b' }}>
+                      {new Date(doc.createdAt).toLocaleDateString('mn-MN')}
+                    </span>
+                    {doc.fileHash && (
+                      <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>
+                        {doc.fileHash.slice(0, 16)}…
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action */}
+                <div style={{ flexShrink: 0 }}>
+                  <Button
+                    size="small"
+                    icon={<EyeOutlined />}
+                    onClick={() => window.open(`/verify/${doc.id}`, '_blank')}
+                  >
+                    Үзэх
+                  </Button>
+                </div>
+              </div>
+            ))
           ) : (
-            <Empty
-              description="Хайлтын үр дүн олдсонгүй"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
+            <div style={{ padding: '32px 20px', textAlign: 'center', color: '#64748b', fontSize: 14 }}>
+              Хайлтын үр дүн олдсонгүй
+            </div>
           )}
         </div>
       )}
