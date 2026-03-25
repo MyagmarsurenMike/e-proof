@@ -13,6 +13,7 @@ import {
   ClockCircleOutlined,
   CloseOutlined,
   LogoutOutlined,
+  MenuOutlined,
 } from '@ant-design/icons';
 import { Tag, Button } from 'antd';
 
@@ -51,6 +52,7 @@ export function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<DocNotification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -95,10 +97,19 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen bg-white">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         style={{ width: 240, borderRight: '1px solid #e2e8f0' }}
-        className="flex flex-col fixed top-0 left-0 h-full bg-[#f8fafc]"
+        className={`flex flex-col fixed top-0 left-0 h-full bg-[#f8fafc] z-50 transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         {/* Logo */}
         <div
@@ -300,7 +311,25 @@ export function AppShell({ children }: AppShellProps) {
       </div>
 
       {/* Main content */}
-      <main style={{ marginLeft: 240 }} className="flex-1 min-h-screen">
+      <main className="flex-1 min-h-screen lg:ml-[240px]">
+        {/* Mobile top bar */}
+        <div
+          className="lg:hidden flex items-center gap-3 px-4 h-14 bg-white sticky top-0 z-30"
+          style={{ borderBottom: '1px solid #e2e8f0' }}
+        >
+          <button
+            onClick={() => setSidebarOpen(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 18, padding: 4 }}
+          >
+            <MenuOutlined />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 bg-[#1e3a8a] rounded flex items-center justify-center">
+              <SafetyCertificateOutlined style={{ color: '#fff', fontSize: 10 }} />
+            </div>
+            <span className="font-semibold text-[#0f172a] text-sm">Э-Нотолгоо</span>
+          </div>
+        </div>
         {children}
       </main>
     </div>

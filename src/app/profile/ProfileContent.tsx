@@ -75,7 +75,7 @@ export default function ProfileContent() {
 
   return (
     <AppShell>
-      <div className="px-8 py-6 max-w-2xl">
+      <div className="px-4 sm:px-8 py-6 max-w-2xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-[#0f172a]">Профайл</h2>
           {!editing ? (
@@ -151,7 +151,7 @@ export default function ProfileContent() {
 
         {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Нийт', value: stats.total },
               { label: 'Баталгаажсан', value: stats.verified },

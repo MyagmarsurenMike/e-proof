@@ -119,7 +119,7 @@ export default function DocumentPage() {
   if (error || !document) {
     return (
       <AppShell>
-        <div className="px-8 py-6">
+        <div className="px-4 sm:px-8 py-6">
           <Alert message="Алдаа гарлаа" description={error || 'Баримт бичиг олдсонгүй'} type="error" showIcon />
         </div>
       </AppShell>
@@ -131,7 +131,7 @@ export default function DocumentPage() {
 
   return (
     <AppShell>
-      <div className="px-8 py-6">
+      <div className="px-4 sm:px-8 py-6">
         {/* Page header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-[#0f172a]">{document.title}</h2>
@@ -141,9 +141,9 @@ export default function DocumentPage() {
         </div>
 
         {/* Two-column layout */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: metadata (60%) */}
-          <div style={{ flex: '0 0 60%' }}>
+          <div style={{ flex: '0 0 60%', minWidth: 0 }}>
             <Descriptions
               column={1}
               size="middle"
@@ -191,7 +191,7 @@ export default function DocumentPage() {
           </div>
 
           {/* Right: file preview (40%) */}
-          <div style={{ flex: '0 0 40%' }}>
+          <div style={{ flex: '0 0 40%', minWidth: 0 }}>
             <div
               style={{ border: '1px solid #e2e8f0', borderRadius: 8, minHeight: 300, overflow: 'hidden' }}
               className="flex items-center justify-center bg-[#f8fafc]"

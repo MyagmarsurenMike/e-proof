@@ -187,7 +187,7 @@ export default function Dashboard() {
 
   return (
     <AppShell>
-      <div className="px-8 py-6">
+      <div className="px-4 sm:px-8 py-6">
         {/* Page header */}
         <div className="flex items-center justify-between mb-6">
           <div>

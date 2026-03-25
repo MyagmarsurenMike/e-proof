@@ -51,7 +51,7 @@ export default function SettingsContent() {
 
   return (
     <AppShell>
-      <div className="px-8 py-6 max-w-lg">
+      <div className="px-4 sm:px-8 py-6 max-w-lg mx-auto w-full">
         <h2 className="text-2xl font-bold text-[#0f172a] mb-6">Тохиргоо</h2>
 
         {/* Password change */}
