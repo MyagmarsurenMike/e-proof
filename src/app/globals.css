@@ -54,6 +54,12 @@ body {
 .ant-btn-default {
   background: #ffffff !important;
   border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+.ant-btn-default:hover {
+  border-color: #1e3a8a !important;
+  color: #1e3a8a !important;
+  background: #ffffff !important;
 }
 
 /* Table — no outer border, subtle row hover, no zebra */
