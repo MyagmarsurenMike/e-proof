@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App } from 'antd';
+import '@ant-design/v5-patch-for-react-19';
 
 export function AntdProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -18,7 +19,7 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
       }}
       warning={{ strict: false }}
     >
-      {children}
+      <App>{children}</App>
     </ConfigProvider>
   );
 }

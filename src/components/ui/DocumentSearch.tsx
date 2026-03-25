@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Tag, message, Spin } from 'antd';
+import { Input, Button, Tag, App, Spin } from 'antd';
 import { SearchOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
@@ -30,6 +30,7 @@ interface DocumentSearchProps {
 }
 
 export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => {
+  const { message } = App.useApp();
   const [searchValue, setSearchValue] = useState('');
   const [searchResults, setSearchResults] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
