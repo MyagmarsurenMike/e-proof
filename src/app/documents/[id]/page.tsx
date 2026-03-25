@@ -127,6 +127,7 @@ export default function DocumentPage() {
 
   const isImage = document.mimeType.startsWith('image/')
   const isPDF = document.mimeType === 'application/pdf'
+  const [previewError, setPreviewError] = useState(false)
 
   return (
     <AppShell>
@@ -191,28 +192,33 @@ export default function DocumentPage() {
           {/* Right: file preview (40%) */}
           <div style={{ flex: '0 0 40%' }}>
             <div
-              style={{ border: '1px solid #e2e8f0', borderRadius: 8, minHeight: 300 }}
+              style={{ border: '1px solid #e2e8f0', borderRadius: 8, minHeight: 300, overflow: 'hidden' }}
               className="flex items-center justify-center bg-[#f8fafc]"
             >
-              {isImage ? (
+              {previewError || (!isImage && !isPDF) ? (
+                <div className="text-center py-12 px-4">
+                  <FileTextOutlined style={{ fontSize: 36, color: '#64748b' }} />
+                  <p className="text-sm text-[#64748b] mt-3 mb-4">{document.fileName}</p>
+                  <Button icon={<DownloadOutlined />} onClick={downloadFile} size="small">
+                    Татах
+                  </Button>
+                </div>
+              ) : isImage ? (
                 <img
                   src={`/api/documents/${document.id}/file`}
                   alt={document.fileName}
                   className="max-w-full max-h-80 rounded"
+                  onError={() => setPreviewError(true)}
                 />
-              ) : isPDF ? (
+              ) : (
                 <iframe
                   src={`/api/documents/${document.id}/file`}
                   width="100%"
                   height="300px"
-                  className="rounded"
+                  style={{ border: 'none' }}
                   title={document.fileName}
+                  onError={() => setPreviewError(true)}
                 />
-              ) : (
-                <div className="text-center py-12">
-                  <FileTextOutlined className="text-4xl text-[#64748b] mb-3" />
-                  <p className="text-sm text-[#64748b]">Урдчилан харах боломжгүй</p>
-                </div>
               )}
             </div>
           </div>
