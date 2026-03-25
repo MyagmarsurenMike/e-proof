@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { SafetyCertificateOutlined } from '@ant-design/icons';
+import { SafetyCertificateOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
 interface AppShellProps {
@@ -77,7 +77,9 @@ export function AppShell({ children }: AppShellProps) {
           <Button
             size="small"
             block
+            icon={<LogoutOutlined />}
             onClick={() => signOut({ callbackUrl: '/' })}
+            style={{ color: '#64748b', borderColor: '#e2e8f0' }}
           >
             Гарах
           </Button>
