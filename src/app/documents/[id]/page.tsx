@@ -36,6 +36,7 @@ export default function DocumentPage() {
   const [document, setDocument] = useState<Document | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [previewError, setPreviewError] = useState(false)
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -127,7 +128,6 @@ export default function DocumentPage() {
 
   const isImage = document.mimeType.startsWith('image/')
   const isPDF = document.mimeType === 'application/pdf'
-  const [previewError, setPreviewError] = useState(false)
 
   return (
     <AppShell>
