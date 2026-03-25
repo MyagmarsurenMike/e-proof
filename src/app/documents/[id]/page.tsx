@@ -172,20 +172,21 @@ export default function DocumentPage() {
 
             {/* Blockchain section — only if blockchainHash exists */}
             {document.blockchainHash && (
-              <Descriptions
-                column={1}
-                size="middle"
-                bordered={false}
-                className="mt-4"
-                style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
-              >
-                <Descriptions.Item label="Гүйлгээний ID">
-                  <code className="text-xs break-all">{document.transactionId}</code>
-                </Descriptions.Item>
-                {document.blockNumber && (
-                  <Descriptions.Item label="Блокийн дугаар">{document.blockNumber}</Descriptions.Item>
-                )}
-              </Descriptions>
+              <div style={{ marginTop: 16, marginBottom: 16 }}>
+                <Descriptions
+                  column={1}
+                  size="middle"
+                  bordered={false}
+                  style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}
+                >
+                  <Descriptions.Item label="Гүйлгээний ID">
+                    <code className="text-xs break-all">{document.transactionId}</code>
+                  </Descriptions.Item>
+                  {document.blockNumber && (
+                    <Descriptions.Item label="Блокийн дугаар">{document.blockNumber}</Descriptions.Item>
+                  )}
+                </Descriptions>
+              </div>
             )}
           </div>
 
