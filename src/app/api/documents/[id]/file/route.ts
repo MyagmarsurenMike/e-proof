@@ -30,13 +30,16 @@ export async function GET(
     }
 
     // Determine file location: S3 key takes priority, then local path
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const location = (document as any).s3Key || (document as any).rawFilePath
     if (!location) {
       return NextResponse.json({ error: 'File not available' }, { status: 404 })
     }
 
     // encryptedDataKey stored as Bytes (Buffer) in DB, null for local-key files
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const encryptedKey = (document as any).encryptedDataKey
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? Buffer.from((document as any).encryptedDataKey)
       : null
 

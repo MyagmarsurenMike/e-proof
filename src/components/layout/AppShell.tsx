@@ -8,13 +8,13 @@ import {
   SafetyCertificateOutlined,
   BellOutlined,
   SettingOutlined,
-  UserOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
   ClockCircleOutlined,
   CloseOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
-import { Tag } from 'antd';
+import { Tag, Button } from 'antd';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -197,6 +197,28 @@ export function AppShell({ children }: AppShellProps) {
             <SettingOutlined style={{ fontSize: 16 }} />
             <span style={{ fontSize: 10 }}>Тохиргоо</span>
           </button>
+        </div>
+
+        {/* User row */}
+        <div style={{ borderTop: '1px solid #e2e8f0', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {session?.user?.name && (
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {session.user.name}
+              </p>
+            )}
+            <p style={{ fontSize: 11, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {session?.user?.email || ''}
+            </p>
+          </div>
+          <Button
+            size="small"
+            icon={<LogoutOutlined />}
+            onClick={() => signOut({ callbackUrl: '/' })}
+            style={{ color: '#64748b', borderColor: '#e2e8f0', flexShrink: 0 }}
+          >
+            Гарах
+          </Button>
         </div>
       </aside>
 

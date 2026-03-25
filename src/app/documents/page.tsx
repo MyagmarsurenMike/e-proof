@@ -1,12 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { Table, Tag, Button, Spin, App } from 'antd';
-import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Table, Tag, Button, Typography, Spin, message } from 'antd';
+import {
+  FileTextOutlined,
+  CheckCircleOutlined,
+  UserOutlined,
+  DownloadOutlined,
+  ShareAltOutlined,
+  PlusOutlined,
+  SearchOutlined
+} from '@ant-design/icons';
 import { AppShell } from '@/components/layout/AppShell';
 import { DocumentType, VerificationStatus } from '@/types/enums';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+
+const { Text } = Typography;
 
 interface DocumentData {
   id: string;
@@ -27,9 +37,8 @@ interface UserStats {
   pending: number;
 }
 
-export default function Dashboard() {
+export default function DocumentsPage() {
   const { data: session } = useSession();
-  const { message } = App.useApp();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -190,44 +199,33 @@ export default function Dashboard() {
       <div className="px-8 py-6">
         {/* Page header */}
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-[#0f172a]">Хяналтын самбар</h2>
-            {session?.user?.email && (
-              <p className="text-sm text-[#64748b] mt-0.5">Тавтай морил, {session.user.name || session.user.email}</p>
-            )}
-          </div>
+          <h2 className="text-2xl font-bold text-[#0f172a]">Баримт бичгүүд</h2>
           <Link href="/verify">
             <Button type="primary" icon={<PlusOutlined />}>
-              Баримт нэмэх
+              Нэмэх
             </Button>
           </Link>
         </div>
 
-        {/* Stat cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { label: 'Нийт баримт', value: stats?.total ?? '—', sub: 'бүгд' },
-            { label: 'Баталгаажсан', value: stats?.verified ?? '—', sub: 'амжилттай' },
-            { label: 'Хүлээгдэж байна', value: stats?.pending ?? '—', sub: 'шалгагдаж байна' },
-          ].map(({ label, value, sub }) => (
-            <div
-              key={label}
-              style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '20px 24px' }}
-            >
-              <p className="text-xs text-[#64748b] mb-1">{label}</p>
-              <p className="text-3xl font-bold text-[#0f172a]">{value}</p>
-              <p className="text-xs text-[#64748b] mt-1">{sub}</p>
-            </div>
-          ))}
-        </div>
+        {/* Inline stats */}
+        {stats && (
+          <div
+            style={{ borderBottom: '1px solid #e2e8f0' }}
+            className="flex gap-8 pb-4 mb-6 text-sm"
+          >
+            <span>
+              Нийт: <strong className="text-[#0f172a]">{stats.total}</strong>
+            </span>
+            <span>
+              Баталгаажсан: <strong className="text-[#0f172a]">{stats.verified}</strong>
+            </span>
+            <span>
+              Хүлээгдэж байна: <strong className="text-[#0f172a]">{stats.pending}</strong>
+            </span>
+          </div>
+        )}
 
-        {/* Recent documents */}
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-[#0f172a]">Сүүлийн баримт бичгүүд</p>
-          <Link href="/verify" className="text-xs text-[#1e3a8a]">+ Шинэ нэмэх</Link>
-        </div>
-
-        <Suspense fallback={<div className="flex justify-center py-12"><Spin size="large" /></div>}>
+        {/* Documents table */}
         <Spin spinning={loading}>
           <Table
             columns={columns}
@@ -240,7 +238,6 @@ export default function Dashboard() {
             locale={{ emptyText: 'Баримт бичиг байхгүй байна' }}
           />
         </Spin>
-        </Suspense>
       </div>
     </AppShell>
   );

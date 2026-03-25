@@ -126,10 +126,10 @@ export async function POST(request: NextRequest) {
       prisma.document.findUnique({
         where: { fileHash },
       }),
-      new Promise((_, reject) => 
+      new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database query timeout')), 5000)
       )
-    ]) as any
+    ]) as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (existingDoc) {
       console.log('Document already exists with hash:', fileHash)
@@ -143,10 +143,10 @@ export async function POST(request: NextRequest) {
     console.log('Saving files to filesystem...')
     const fileResults = await Promise.race([
       saveFiles(buffer, file.name),
-      new Promise((_, reject) => 
+      new Promise((_, reject) =>
         setTimeout(() => reject(new Error('File save timeout')), 5000)
       )
-    ]) as any
+    ]) as any // eslint-disable-line @typescript-eslint/no-explicit-any
     
     tempFiles = fileResults
     console.log('Files saved:', fileResults)
@@ -173,10 +173,10 @@ export async function POST(request: NextRequest) {
         userId,
         tags,
       }),
-      new Promise((_, reject) => 
+      new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Document creation timeout')), 5000)
       )
-    ]) as any
+    ]) as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
     console.log('Document created:', document.id)
 

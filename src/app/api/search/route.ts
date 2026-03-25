@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     console.log('Search request:', { query, type, owner, limit, offset, tags });
 
     // Build search conditions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const whereConditions: any = {
       // Exclude soft-deleted files
       deletedAt: null,
@@ -77,6 +78,7 @@ export async function GET(request: NextRequest) {
 
     // Add type filter
     if (type) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const typeConditions: any[] = [];
       
       switch (type.toLowerCase()) {
@@ -224,6 +226,7 @@ export async function POST(request: NextRequest) {
       offset = 0
     } = body;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const whereConditions: any = {
       deletedAt: null,
       OR: [

@@ -274,7 +274,7 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
               return e && e.fileList;
             }}
           >
-            <Dragger {...uploadProps} className="border-dashed border-2 border-[#e2e8f0]">
+            <Dragger {...uploadProps}>
               <p className="ant-upload-drag-icon">
                 <InboxOutlined className="text-4xl text-blue-500" />
               </p>

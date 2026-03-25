@@ -1,4 +1,4 @@
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE, type UploadValidationError } from '@/types/file';
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE, type AllowedMimeType, type UploadValidationError } from '@/types/file';
 
 /**
  * Validates uploaded file for security and compliance
@@ -15,7 +15,7 @@ export function validateFile(file: File): UploadValidationError[] {
   }
 
   // Check MIME type
-  if (!ALLOWED_MIME_TYPES.includes(file.type as any)) {
+  if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMimeType)) {
     errors.push({
       field: 'file',
       message: `File type ${file.type} is not allowed`

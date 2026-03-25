@@ -58,9 +58,10 @@ export async function uploadToS3(
         ServerSideEncryption: 'AES256',           // S3-side encryption on top
       })
     )
-  } catch (err: any) {
-    const code = err?.Code || err?.name || 'S3Error'
-    const msg = err?.message || String(err)
+  } catch (err: unknown) {
+    const e = err as { Code?: string; name?: string; message?: string }
+    const code = e?.Code || e?.name || 'S3Error'
+    const msg = e?.message || String(err)
     throw new Error(`S3 PutObject failed [${code}]: ${msg}`)
   }
 
@@ -80,9 +81,10 @@ export async function downloadFromS3(s3Key: string): Promise<Buffer> {
   let res
   try {
     res = await client.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }))
-  } catch (err: any) {
-    const code = err?.Code || err?.name || 'S3Error'
-    const msg = err?.message || String(err)
+  } catch (err: unknown) {
+    const e = err as { Code?: string; name?: string; message?: string }
+    const code = e?.Code || e?.name || 'S3Error'
+    const msg = e?.message || String(err)
     throw new Error(`S3 GetObject failed [${code}]: ${msg}`)
   }
 
@@ -108,9 +110,10 @@ export async function deleteFromS3(s3Key: string): Promise<void> {
 
   try {
     await client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: s3Key }))
-  } catch (err: any) {
-    const code = err?.Code || err?.name || 'S3Error'
-    const msg = err?.message || String(err)
+  } catch (err: unknown) {
+    const e = err as { Code?: string; name?: string; message?: string }
+    const code = e?.Code || e?.name || 'S3Error'
+    const msg = e?.message || String(err)
     throw new Error(`S3 DeleteObject failed [${code}]: ${msg}`)
   }
 }

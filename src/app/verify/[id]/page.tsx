@@ -60,8 +60,8 @@ export default function PublicVerificationPage({ params }: { params: { id: strin
 
       const data = await response.json();
       setDocument(data.document);
-    } catch (error: any) {
-      setError(error.message || 'Баримт бичгийг татахад алдаа гарлаа');
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Баримт бичгийг татахад алдаа гарлаа');
     } finally {
       setLoading(false);
     }

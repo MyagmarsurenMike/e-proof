@@ -3,8 +3,16 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
+interface UploadedFileResult {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  [key: string]: unknown;
+}
+
 interface UploadComponentProps {
-  onUploadSuccess?: (file: any) => void;
+  onUploadSuccess?: (file: UploadedFileResult) => void;
   onUploadError?: (error: string) => void;
   className?: string;
 }
@@ -172,10 +180,10 @@ export default function UploadComponent({
 
       {/* Drop Zone */}
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
           isDragging
             ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400'
+            : 'border-gray-500 hover:border-blue-400'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -271,12 +279,12 @@ export default function UploadComponent({
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 placeholder="Add tags..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 type="button"
                 onClick={addTag}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
               >
                 Add
               </button>

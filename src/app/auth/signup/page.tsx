@@ -17,7 +17,7 @@ export default function SignUp() {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Record<string, string>) => {
     setLoading(true);
     setError('');
     setSuccess(false);
@@ -42,8 +42,8 @@ export default function SignUp() {
         router.push('/auth/signin');
       }, 2000);
 
-    } catch (error: any) {
-      setError(error.message || 'Бүртгэлд алдаа гарлаа');
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Бүртгэлд алдаа гарлаа');
     } finally {
       setLoading(false);
     }
