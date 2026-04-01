@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Input, Button, Tag, App, Spin } from 'antd';
-import { SearchOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
-
-const { Search } = Input;
+import React, { useId, useState, useEffect, useRef } from 'react';
+import { Tag, App, Spin } from 'antd';
+import { EyeOutlined, FileTextOutlined } from '@ant-design/icons';
+import { ArrowRight, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Document {
   id: string;
@@ -27,20 +28,33 @@ interface Document {
 
 interface DocumentSearchProps {
   className?: string;
+  dark?: boolean;
 }
 
-export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => {
+export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className, dark: _dark }) => {
   const { message } = App.useApp();
+  const id = useId();
   const [searchValue, setSearchValue] = useState('');
   const [searchResults, setSearchResults] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSearch = async (value: string) => {
-    if (!value.trim()) {
-      message.warning('Хайлтын утга оруулна уу');
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!searchValue.trim()) {
+      setHasSearched(false);
+      setSearchResults([]);
       return;
     }
+    debounceRef.current = setTimeout(() => {
+      handleSearch(searchValue);
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchValue]);
+
+  const handleSearch = async (value: string) => {
+    if (!value.trim()) return;
 
     setLoading(true);
     setHasSearched(true);
@@ -95,86 +109,93 @@ export const DocumentSearch: React.FC<DocumentSearchProps> = ({ className }) => 
 
   return (
     <div className={className}>
-      <Search
-        placeholder="Хэш код эсвэл баримт бичгийн нэр оруулна уу..."
-        value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
-        onSearch={handleSearch}
-        size="large"
-        enterButton={
-          <Button type="primary" icon={<SearchOutlined />}>
-            Хайх
-          </Button>
-        }
-        loading={loading}
-      />
-
-      {loading && (
-        <div className="text-center py-8">
-          <Spin size="large" />
-          <div className="mt-4 text-sm text-[#64748b]">Хайж байна...</div>
+      <div className="space-y-2">
+        <div className="relative max-w-sm mx-auto">
+          <Input
+            id={id}
+            className="peer pe-9 ps-9 h-10 text-sm rounded-full"
+            style={{ background: 'transparent', borderRadius: 9999 }}
+            placeholder="Хэш код эсвэл баримт бичгийн нэр оруулна уу..."
+            type="search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+disabled={loading}
+          />
+          <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+            <Search size={16} strokeWidth={2} />
+          </div>
+          <button
+            className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-full text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Submit search"
+            type="button"
+            onClick={() => handleSearch(searchValue)}
+            disabled={loading}
+          >
+            {loading ? (
+              <Spin size="small" />
+            ) : (
+              <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
+            )}
+          </button>
         </div>
-      )}
+      </div>
 
       {hasSearched && !loading && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, marginTop: 12, overflow: 'hidden' }}>
+        <div className="mt-3 max-w-sm mx-auto flex flex-col gap-2">
           {searchResults.length > 0 ? (
-            searchResults.map((doc, i) => (
+            searchResults.map((doc) => (
               <div
                 key={doc.id}
-                style={{
-                  borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
-                  padding: '14px 20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
+                onClick={() => window.open(`/verify/${doc.id}`, '_blank')}
+                className="group cursor-pointer flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-150"
+                style={{ border: '1px solid #e2e8f0', background: '#fff' }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = '#1e3a8a30';
+                  (e.currentTarget as HTMLDivElement).style.background = '#f8fafc';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = '#e2e8f0';
+                  (e.currentTarget as HTMLDivElement).style.background = '#fff';
                 }}
               >
                 {/* Icon */}
-                <div style={{
-                  width: 36, height: 36, borderRadius: 6,
-                  background: '#f8fafc', border: '1px solid #e2e8f0',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, color: '#64748b',
-                }}>
-                  <FileTextOutlined />
+                <div className="shrink-0 flex items-center justify-center rounded-lg"
+                  style={{ width: 40, height: 40, background: '#f1f5f9', color: '#1e3a8a' }}>
+                  <FileTextOutlined style={{ fontSize: 16 }} />
                 </div>
 
                 {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 500, color: '#0f172a', fontSize: 14, marginBottom: 4 }}>
-                    {doc.title}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <Tag color={getStatusColor(doc.status)} style={{ margin: 0 }}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm truncate" style={{ color: '#0f172a' }}>
+                      {doc.title}
+                    </span>
+                    <Tag color={getStatusColor(doc.status)} style={{ margin: 0, flexShrink: 0 }}>
                       {getStatusText(doc.status)}
                     </Tag>
-                    <span style={{ fontSize: 12, color: '#64748b' }}>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs" style={{ color: '#94a3b8' }}>
                       {new Date(doc.createdAt).toLocaleDateString('mn-MN')}
                     </span>
                     {doc.fileHash && (
-                      <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>
-                        {doc.fileHash.slice(0, 16)}…
+                      <span className="text-xs font-mono truncate" style={{ color: '#cbd5e1', maxWidth: 140 }}>
+                        {doc.fileHash.slice(0, 20)}…
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Action */}
-                <div style={{ flexShrink: 0 }}>
-                  <Button
-                    size="small"
-                    icon={<EyeOutlined />}
-                    onClick={() => window.open(`/verify/${doc.id}`, '_blank')}
-                  >
-                    Үзэх
-                  </Button>
+                {/* Arrow */}
+                <div className="shrink-0 transition-transform duration-150 group-hover:translate-x-0.5" style={{ color: '#94a3b8' }}>
+                  <EyeOutlined style={{ fontSize: 15 }} />
                 </div>
               </div>
             ))
           ) : (
-            <div style={{ padding: '32px 20px', textAlign: 'center', color: '#64748b', fontSize: 14 }}>
-              Хайлтын үр дүн олдсонгүй
+            <div className="rounded-xl py-10 text-center" style={{ border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+              <FileTextOutlined style={{ fontSize: 28, color: '#cbd5e1' }} />
+              <p className="mt-3 text-sm" style={{ color: '#94a3b8' }}>Хайлтын үр дүн олдсонгүй</p>
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { AntdProvider } from "@/components/providers/AntdProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -14,6 +14,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-ibm-plex",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Э-Нотолгоо - Блокчэйн баримт бичиг баталгаажуулалт",
   description: "Блокчэйн дээр суурилсан аюулгүй баримт бичиг баталгаажуулах платформ",
@@ -26,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="mn">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${ibmPlexSans.variable} antialiased`}>
         <AuthProvider>
           <AntdProvider>
             {children}

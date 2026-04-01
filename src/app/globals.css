@@ -7,11 +7,19 @@
   --text-secondary: #64748b;
   --navy: #1e3a8a;
   --bg-secondary: #f8fafc;
+
+  /* shadcn/originui tokens */
+  --input: #e2e8f0;
+  --ring: #1e3a8a;
+  --muted-foreground: #64748b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-muted-foreground: var(--muted-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { documentOperations } from '@/lib/database'
 import { readStoredFile } from '@/lib/fileStorage'
 
@@ -13,20 +11,9 @@ export async function GET(
   try {
     const { id: documentId } = await context.params
 
-    // Auth check
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
     const document = await documentOperations.getDocumentById(documentId)
     if (!document) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
-    }
-
-    // Ownership check
-    if (document.userId !== session.user.id) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
     // Determine file location: S3 key takes priority, then local path
