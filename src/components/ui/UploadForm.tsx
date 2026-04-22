@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import {
+  App,
   Card,
   Form,
   Upload,
@@ -11,7 +12,6 @@ import {
   Space,
   Typography,
   Progress,
-  message
 } from 'antd';
 import { 
   InboxOutlined, 
@@ -43,6 +43,7 @@ interface UploadFormProps {
 }
 
 export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) => {
+  const { message } = App.useApp();
   const { data: session } = useSession();
   const [form] = Form.useForm();
   const [uploading, setUploading] = useState(false);
@@ -126,42 +127,49 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onVerificationStart }) =
 
   const startVerificationProcess = async (documentId: string) => {
     try {
-      // Update status to processing with real user ID
-      await fetch(`/api/documents/${documentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: 'PROCESSING',
-          userId: session?.user?.id,
-        }),
-      });
+      // Poll for real blockchain status
+      const maxAttempts = 120; // 2 minutes with 1s interval
+      let attempts = 0;
 
-      // Simulate blockchain verification process
-      setTimeout(async () => {
-        try {
-          // Simulate successful verification
-          await fetch(`/api/documents/${documentId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              status: 'VERIFIED',
-              blockchainHash: `0x${Math.random().toString(16).substr(2, 40)}`,
-              transactionId: `0x${Math.random().toString(16).substr(2, 64)}`,
-              blockNumber: Math.floor(Math.random() * 1000000 + 15000000).toString(),
-              networkId: 'ethereum',
-              contractAddress: '0x742d35Cc6634C0532925a3b8D2D5C49C3E8ceb8B',
-              userId: session?.user?.id,
-            }),
-          });
-        } catch (error) {
-          console.error('Verification error:', error);
+      const pollForStatus = async () => {
+        while (attempts < maxAttempts) {
+          try {
+            const response = await fetch(`/api/documents/${documentId}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+              console.error('Error fetching document:', data.error);
+              attempts++;
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              continue;
+            }
+
+            const { document } = data;
+
+            // Stop polling when blockchain registration completes
+            if (document.status === 'VERIFIED' || document.status === 'FAILED') {
+              console.log('Blockchain registration complete:', {
+                status: document.status,
+                transactionId: document.transactionId,
+                blockNumber: document.blockNumber,
+              });
+              return;
+            }
+
+            // Still processing, wait and retry
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } catch (error) {
+            console.error('Poll error:', error);
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
-      }, 3000);
 
+        console.warn('Polling timeout: blockchain registration may still be processing');
+      };
+
+      await pollForStatus();
     } catch (error) {
       console.error('Verification process error:', error);
     }
