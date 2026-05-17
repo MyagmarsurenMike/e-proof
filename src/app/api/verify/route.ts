@@ -1,34 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { generateFileHash } from '@/lib/fileStorage'
 import { verifyDocument } from '@/lib/blockchain'
 
 export const dynamic = 'force-dynamic'
 
+const RATE_LIMIT_MAX = 10
+const RATE_LIMIT_WINDOW_MS = 60_000
+const rateBuckets = new Map<string, { count: number; resetAt: number }>()
+
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  return request.headers.get('x-real-ip') ?? 'unknown'
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now()
+  const bucket = rateBuckets.get(ip)
+
+  if (!bucket || bucket.resetAt <= now) {
+    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return { allowed: true, retryAfter: 0 }
+  }
+
+  if (bucket.count >= RATE_LIMIT_MAX) {
+    return { allowed: false, retryAfter: Math.ceil((bucket.resetAt - now) / 1000) }
+  }
+
+  bucket.count += 1
+  return { allowed: true, retryAfter: 0 }
+}
+
 /**
  * POST /api/verify
- * Upload a file to verify — recomputes its SHA-256 hash, checks DB and blockchain.
+ * Body: { fileHash: string }  — SHA-256 hex (64 lowercase chars)
+ * The verifier hashes the file in the browser; the document content never leaves their machine.
  */
 export async function POST(request: NextRequest) {
-  try {
-    const formData = await Promise.race([
-      request.formData(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Form data timeout')), 10000)
-      ),
-    ])
+  const ip = getClientIp(request)
+  const limit = checkRateLimit(ip)
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Хэт олон хүсэлт. Хэсэг хүлээгээд дахин оролдоно уу.' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
+    )
+  }
 
-    const file = formData.get('file') as File | null
-    if (!file) {
-      return NextResponse.json({ error: 'Файл шаардлагатай' }, { status: 400 })
+  try {
+    const body = (await request.json().catch(() => null)) as { fileHash?: unknown } | null
+    const fileHash = body?.fileHash
+
+    if (typeof fileHash !== 'string' || !/^[a-f0-9]{64}$/.test(fileHash)) {
+      return NextResponse.json(
+        { error: 'Файлын хэш буруу байна' },
+        { status: 400 }
+      )
     }
 
-    // Compute hash of the uploaded file
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const fileHash = generateFileHash(buffer)
-
-    // Look up hash in DB
     const document = await prisma.document.findUnique({
       where: { fileHash },
       select: {
@@ -55,7 +83,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check blockchain
     const chainResult = await verifyDocument(fileHash)
 
     if (chainResult && !chainResult.verified) {

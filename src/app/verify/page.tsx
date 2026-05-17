@@ -1,15 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Card, Typography, Spin } from 'antd';
-import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Spin } from 'antd';
 import { PublicNav } from '@/components/layout/PublicNav';
 import { Footer } from '@/components/ui/Footer';
-import { UploadForm } from '@/components/ui/UploadForm';
+import { VerifyForm, type VerifyApiResponse } from '@/components/ui/VerifyForm';
 import { VerificationResult } from '@/components/ui/VerificationResult';
-import Link from 'next/link';
-
-const { Title, Paragraph } = Typography;
 
 interface VerificationData {
   documentTitle: string;
@@ -18,53 +14,55 @@ interface VerificationData {
   status: 'verified' | 'failed' | 'verifying';
   id?: string;
   fileName?: string;
-  shareableLink?: string;
   description?: string;
   blockchainHash?: string;
   transactionId?: string;
   blockNumber?: string;
 }
 
+function mapResponseToView(
+  result: VerifyApiResponse,
+  fileName: string
+): VerificationData {
+  const doc = result.document;
+  const chain = result.blockchain;
+
+  return {
+    documentTitle: doc?.title ?? fileName,
+    documentType: doc?.documentType ?? '—',
+    timestamp:
+      doc?.verifiedAt ?? doc?.createdAt ?? new Date().toISOString(),
+    status: result.verified ? 'verified' : 'failed',
+    id: doc?.id,
+    fileName: doc?.fileName ?? fileName,
+    description: result.reason,
+    blockchainHash: result.fileHash,
+    transactionId: chain?.transactionId ?? doc?.transactionId ?? undefined,
+    blockNumber:
+      chain?.blockNumber != null
+        ? String(chain.blockNumber)
+        : doc?.blockNumber != null
+          ? String(doc.blockNumber)
+          : undefined,
+  };
+}
+
 export default function VerifyPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [verificationData, setVerificationData] = useState<VerificationData | null>(null);
+  const [verificationData, setVerificationData] =
+    useState<VerificationData | null>(null);
 
-  const handleVerificationStart = (data: VerificationData) => {
-    setVerificationData(data);
-    setCurrentStep(1);
+  const handleStart = () => setCurrentStep(1);
 
-    // Simulate the verification process
-    setTimeout(() => {
-      setVerificationData((prev: VerificationData | null) => ({
-        ...prev!,
-        status: 'verified',
-        blockchainHash: '0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t',
-        transactionId: '0xabcdef1234567890abcdef1234567890abcdef12',
-        blockNumber: '15,432,891'
-      }));
-      setCurrentStep(2);
-    }, 3000);
+  const handleComplete = (result: VerifyApiResponse, fileName: string) => {
+    setVerificationData(mapResponseToView(result, fileName));
+    setCurrentStep(2);
   };
 
   const handleNewVerification = () => {
     setVerificationData(null);
     setCurrentStep(0);
   };
-
-  const steps = [
-    {
-      title: 'Баримт бичиг оруулах',
-      description: 'Баталгаажуулах баримт бичгээ сонгож оруулна уу',
-    },
-    {
-      title: 'Боловсруулж байна',
-      description: 'Баримт бичгийг блокчэйнд боловсруулж, баталгаажуулж байна',
-    },
-    {
-      title: 'Дууссан',
-      description: 'Блокчэйн гэрчилгээтэй баталгаажуулалт дууссан',
-    },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -76,23 +74,22 @@ export default function VerifyPage() {
             Баримт бичиг баталгаажуулалт
           </h1>
           <p className="text-sm text-[#64748b] text-center mb-8">
-            Баримт бичгийг блокчэйн технологиор баталгаажуулна уу
+            Файлыг хөтөч дотроо хэшлэн блокчэйнтэй тулгана. Файл серверт илгээгдэхгүй.
           </p>
 
-          {/* Upload step */}
           {currentStep === 0 && (
-            <UploadForm onVerificationStart={handleVerificationStart} />
+            <VerifyForm onStart={handleStart} onComplete={handleComplete} />
           )}
 
-          {/* Processing */}
           {currentStep === 1 && (
             <div className="text-center py-12">
               <Spin size="large" />
-              <p className="mt-4 text-sm text-[#64748b]">Боловсруулж байна...</p>
+              <p className="mt-4 text-sm text-[#64748b]">
+                Хэш тооцоолж, баталгаажуулж байна...
+              </p>
             </div>
           )}
 
-          {/* Result */}
           {currentStep === 2 && (
             <VerificationResult
               data={verificationData}
