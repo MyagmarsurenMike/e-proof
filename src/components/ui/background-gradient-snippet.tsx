@@ -13,18 +13,19 @@ export default function BackgroundGradientSnippet() {
 
     const onMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
-      setCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      setCursor({ x, y });
+      setIsInside(x >= 0 && x <= rect.width && y >= 0 && y <= rect.height);
     };
-    const onEnter = () => setIsInside(true);
+
     const onLeave = () => setIsInside(false);
 
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseenter', onEnter);
-    el.addEventListener('mouseleave', onLeave);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseleave', onLeave);
     return () => {
-      el.removeEventListener('mousemove', onMove);
-      el.removeEventListener('mouseenter', onEnter);
-      el.removeEventListener('mouseleave', onLeave);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseleave', onLeave);
     };
   }, []);
 
